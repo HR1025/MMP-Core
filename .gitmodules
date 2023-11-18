@@ -1,0 +1,21 @@
+[submodule "Extension/poco"]
+	path = Extension/poco
+	url = https://github.com/pocoproject/poco.git
+[submodule "Extension/lodepng"]
+	path = Extension/lodepng
+	url = https://github.com/lvandeve/lodepng.git
+[submodule "Extension/SPIRV-Cross"]
+	path = Extension/SPIRV-Cross
+	url = https://github.com/KhronosGroup/SPIRV-Cross.git
+[submodule "Extension/DirectX"]
+	path = Extension/DirectX
+	url = https://github.com/HR1025/MMP-DirectX.git
+[submodule "Extension/GLEW"]
+	path = Extension/GLEW
+	url = https://github.com/HR1025/MMP-GLEW.git
+[submodule "Extension/Vulkan-Headers"]
+	path = Extension/Vulkan-Headers
+	url = https://github.com/KhronosGroup/Vulkan-Headers.git
+[submodule "Codec/H264"]
+	path = Codec/H264
+	url = https://github.com/HR1025/MMP-H264.git

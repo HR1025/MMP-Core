@@ -5,7 +5,7 @@ namespace Mmp
 
 const std::string GetMMPBrach()
 {
-    return "linux";
+    return "main";
 }
 
 const std::string GetMMPTag()
@@ -15,7 +15,7 @@ const std::string GetMMPTag()
 
 const std::string GetMMPCommit()
 {
-    return "3127c6e";
+    return "be7e9a8";
 }
 
 } // namespace Mmp

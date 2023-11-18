@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(MMP DESCRIPTION "Multi Media Plugin - Core")
+project(MMP-Core DESCRIPTION "Multi Media Plugin - Core")
 
 #################################################################################################
 #                              Global Vriable(BEGIN)                                            #
@@ -28,25 +28,12 @@ option(USE_VULKAN      "Graphics Library Vulkan"      OFF)
 option(USE_VAAPI       "An implemention for VA-API(Video Acceleration API)" OFF)
 option(USE_SPRIV_CROSS "Use to convert SPRIV to other shader languages" ON)
 option(USE_GBM         "EGL backend GBM"              OFF)
-
-# media-server
-option(USE_MEDIA_SERVER "" OFF)
-option(USE_MEDIA_SERVER_MPEG OFF)
-
-# export API configuration
 option(USE_API_RPC           "RPC(Remote Process Communication) Interface (implement through HTTP OR WEBSOCKET etc.)" OFF)
-option(USE_API_ANDROID       "Android Interface (implement through JNI)" OFF)
-
-# sample configuration
-option(SAMPLE_WITH_SDL "Sample Test With SDL(Screen Provider)" OFF)
-option(SAMPLE_WITH_WAYLAND "Sample Test With Wayland(Screen Provider)" OFF)
 
 option(NOT_AUTO_EGL "Not auto append EGL dependence" OFF)
 #################################################################################################
 #                              Project Configuration(END)                                       #
 #################################################################################################
-
-include(ExternalProject)
 
 # Load custom cmake func
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
@@ -69,7 +56,6 @@ add_subdirectory(Extension/GLEW)
 add_subdirectory(Common)
 add_subdirectory(Codec)
 add_subdirectory(GPU)
-add_subdirectory(Config)
 
 if (USE_API_RPC)
     add_subdirectory(${MMP_CORE_PRO_TOP_DIR}/RPC)
