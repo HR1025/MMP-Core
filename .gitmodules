@@ -19,3 +19,6 @@
 [submodule "Codec/H264"]
 	path = Codec/H264
 	url = https://github.com/HR1025/MMP-H264.git
+[submodule "Extension/VulkanMemoryAllocator"]
+	path = Extension/VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
