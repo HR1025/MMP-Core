@@ -175,3 +175,7 @@ build.gradle
 gradlew
 gradlew.bat
 local.properties
+
+# MMP-Core #
+############
+Extension/vcpkg
