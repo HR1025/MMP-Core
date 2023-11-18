@@ -1,0 +1,21 @@
+#include "Common.h"
+
+namespace Mmp
+{
+
+const std::string GetMMPBrach()
+{
+    return "${MMP_GIT_BRANCH}";
+}
+
+const std::string GetMMPTag()
+{
+    return "${MMP_GIT_TAG}";
+}
+
+const std::string GetMMPCommit()
+{
+    return "${MMP_GIT_COMMIT}";
+}
+
+} // namespace Mmp

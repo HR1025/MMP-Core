@@ -1,0 +1,7 @@
+macro(MMP_VMA_CONFIG)
+    if (USE_VULKAN)
+        add_definitions(-DVMA_STATIC_VULKAN_FUNCTIONS=0)
+        add_definitions(-DVMA_DYNAMIC_VULKAN_FUNCTIONS=1)
+        include_directories(${MMP_PRO_TOP_DIR}/Extension/VulkanMemoryAllocator/include)
+    endif()
+endmacro()

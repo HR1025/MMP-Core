@@ -1,0 +1,84 @@
+cmake_minimum_required(VERSION 3.8)
+
+execute_process(
+    COMMAND git rev-parse --short HEAD
+    OUTPUT_VARIABLE MMP_GIT_COMMIT
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+execute_process(
+    COMMAND git branch --show-current
+    OUTPUT_VARIABLE MMP_GIT_BRANCH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+execute_process(
+    COMMAND git describe --tags --abbrev=0
+    OUTPUT_VARIABLE MMP_GIT_TAG
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Common.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/Common.cpp)
+
+set(Common_SRCS)
+set(Common_INCS)
+
+list(APPEND Common_INCS
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+list(APPEND Common_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Common.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Common.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractLogger.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractLogger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/LogMessage.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/LogMessage.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Instantiator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/DynamicFactory.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/MetaProgramming.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Placeholder.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ValueHolder.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Any.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractAllocateMethod.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/NormalAllocateMethod.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/NormalAllocateMethod.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ImmutableVectorAllocateMethod.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SegmentAllocateMethod.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SegmentAllocateMethod.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/StringAllocateMethod.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/StringAllocateMethod.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AllocateMethodFactory.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/AllocateMethodFactory.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SharedData.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SharedData.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/PixelFormat.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/PixelFormat.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/MediaType.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/MediaType.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/PixelsInfo.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/PixelsInfo.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractFrame.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractFrame.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Task.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Task.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/FuncTask.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/FuncTask.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Promise.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/TrackTask.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/TrackTask.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ThreadPool.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ThreadPool.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/EventMessage.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/EventMessage.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/EventDispatcher.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/EventDispatcher.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/EventTag.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/EventTag.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NoticeCenter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/NoticeCenter.cpp
+)
+
+add_library(MMP_Common OBJECT ${Common_SRCS})
+add_library(Mmp::Common ALIAS MMP_Common)
+target_include_directories(MMP_Common PUBLIC ${Common_INCS})
+target_link_libraries(MMP_Common PRIVATE Poco::Foundation) 
