@@ -1,0 +1,40 @@
+name: mpp-ci
+
+on:
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+
+jobs:
+  debian-gcc-make:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - run : sudo apt install libgbm-dev libsdl2-dev libgl1-mesa-dev* nasm libx11-dev libdrm-dev libva-dev --fix-missing
+      - run : rm -rf build
+      - run : mkdir build
+      - run : git submodule update --init --recursive
+      - run : cd build && cmake .. -DUSE_OPENGL=ON -DUSE_EGL=ON -DUSE_GBM=ON -DSAMPLE_WITH_SDL=ON -DUSE_SDL=ON -DUSE_SPRIV_CROSS=ON -DUSE_VULKAN=ON -DUSE_X11=ON -DUSE_VAAPI=ON && make -j4
+
+  linux-gcc-make:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - run : sudo apt install libsdl2-dev libgl1-mesa-dev* nasm --fix-missing
+      - run : rm -rf build
+      - run : mkdir build
+      - run : git submodule update --init --recursive
+      - run : cd build && cmake .. && make -j4
+
+  msvc2022-x64-make:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v1
+      - run : git submodule update --init --recursive
+      - run : git clone https://github.com/microsoft/vcpkg.git Extension/vcpkg
+      - run : .\Extension\vcpkg\bootstrap-vcpkg.bat
+      - run : .\Extension\vcpkg\vcpkg.exe install sdl2:x64-windows
+      - run : mkdir build
+      - run : cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -S. -B./build -G "Visual Studio 17 2022" -T host=x64 -A x64
+      - run : cmake --build build --config Release -j 16
