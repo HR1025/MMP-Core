@@ -8,7 +8,6 @@
 
 #include "Common/StringAllocateMethod.h"
 #include "Common/SharedData.h"
-#include "Config/AbstractConfig.h"
 
 namespace Mmp
 {
@@ -68,7 +67,7 @@ HTTPRPC::~HTTPRPC()
 
 bool HTTPRPC::Init()
 {
-    _port = RefAnyCast<int64_t>(Config::AbstractConfig::ConfigSingleton()->Get("rpc", "http_port"));
+    _port = 8080;
     return true;
 }
 
