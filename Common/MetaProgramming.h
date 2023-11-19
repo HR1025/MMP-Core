@@ -11,6 +11,8 @@
 #pragma once
 
 #include <tuple>
+#include <cstddef>
+#include <cstdint>
 #include <functional>
 
 namespace Mmp

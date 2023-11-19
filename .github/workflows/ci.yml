@@ -21,7 +21,6 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v1
-      - run : sudo apt install libsdl2-dev libgl1-mesa-dev* nasm
       - run : rm -rf build
       - run : mkdir build
       - run : git submodule update --init --recursive
