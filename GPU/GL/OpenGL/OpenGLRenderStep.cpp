@@ -242,6 +242,7 @@ void OpenGL::RenderStepRender(OpenGLRenderStep& step, bool isFrist, bool isLast)
                     }
                     else
                     {
+                        if (glClearDepth)
                         glClearDepth(clearData.clearZ);
                     }
                 }
@@ -298,6 +299,7 @@ void OpenGL::RenderStepRender(OpenGLRenderStep& step, bool isFrist, bool isLast)
                 }
                 else
                 {
+                    if (glDepthRange)
                     glDepthRange(viewportData.vp.minZ, viewportData.vp.maxZ);
                 }
                 CHECK_GL_ERROR_IF_DEBUG();
