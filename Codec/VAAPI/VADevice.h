@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <set>
 #include <mutex>
 #include <vector>
 #include <memory>
@@ -34,6 +35,9 @@ public:
     bool Create();
     void Destroy();
 public:
+    VADisplay GetDisplay();
+    std::set<VAProfile> GetSupportProfiles();
+public:
     void RegisterNoticeCenter();
     void UnRegisterNoticeCenter();
 private:
@@ -43,7 +47,7 @@ private:
 private:
     std::mutex  _mtx;
 private:
-    bool _isInited;
+    uint32_t    _reference;
 private: /* compability */
     int _versionMajor;
     int _versionMinor;
@@ -55,6 +59,8 @@ private:
     int _drmFd;
 private:
     VADisplay _display; 
+private:
+    std::set<VAProfile> _supportProfiles;
 };
 
 } // namespace Codec

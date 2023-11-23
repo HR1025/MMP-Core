@@ -39,6 +39,22 @@ public:
      */
     virtual Any GetParamter() = 0;
     /**
+     * @brief 初始化
+     */
+    virtual bool Init() { return true; };
+    /**
+     * @brief 重置
+     */
+    virtual void Uninit() {};
+    /**
+     * @brief 开始运行 
+     */
+    virtual bool Start() { return true; }
+    /**
+     * @brief 结束运行 
+     */
+    virtual void Stop() {};
+    /**
      * @brief 提交压缩数据
      */
     virtual bool Push(AbstractFrame::ptr frame) = 0;

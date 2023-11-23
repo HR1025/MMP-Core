@@ -5,6 +5,10 @@
 #include "PNG/PNGEncoder.h"
 #include "PNG/PNGDecorder.h"
 
+#if defined(USE_VAAPI)
+    #include "VAAPI/VAH264Decoder.h"
+#endif /* USE_VAAPI */
+
 namespace Mmp
 {
 namespace Codec
@@ -87,6 +91,9 @@ void DecoderFactory::RegisterBuiltins()
 {
     std::lock_guard<std::mutex> lock(_mutex);
     _decoderFactory.registerClass("PngDecoder", new Instantiator<PngDecoder, AbstractDecoder>);
+#if defined(USE_VAAPI)
+    _decoderFactory.registerClass("VAH264Decoder", new Instantiator<VAH264Decoder, AbstractDecoder>);
+#endif /* USE_VAAPI */
 }
 
 DecoderFactory& DecoderFactory::DefaultFactory()

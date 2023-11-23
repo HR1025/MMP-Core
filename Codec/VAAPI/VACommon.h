@@ -8,7 +8,11 @@
 
 #pragma once
 
+// TODO : move common part from the Codec/VAAPI to Codec, for example H264StartFrameContext and etc
+
+#include "Common/Any.h"
 #include "Common/Common.h"
+#include "Common/PixelFormat.h"
 
 #include <va/va.h>
 #if MMP_PLATFORM(LINUX)
@@ -21,11 +25,68 @@
 #include "Codec/CodecCommon.h"
 #include "Codec/AbstractEncoder.h"
 #include "Codec/AbstractDecorder.h"
+#include "Codec/H264/H264Common.h"
+
+#define VAAPI_LOG_TRACE   MMP_MLOG_TRACE("VAAPI")    
+#define VAAPI_LOG_DEBUG   MMP_MLOG_DEBUG("VAAPI")    
+#define VAAPI_LOG_INFO    MMP_MLOG_INFO("VAAPI")     
+#define VAAPI_LOG_WARN    MMP_MLOG_WARN("VAAPI")     
+#define VAAPI_LOG_ERROR   MMP_MLOG_ERROR("VAAPI")    
+#define VAAPI_LOG_FATAL   MMP_MLOG_FATAL("VAAPI")   
 
 namespace Mmp
 {
 namespace Codec
 {
+
+enum MmpVaDecodeFlag : uint64_t
+{
+    MMP_VA_DECODE_FALG_NEED_MEMORY_NONE = 0,
+    MMP_VA_DECODE_FALG_NEED_MEMORY_TYPE = 1 << 1U,
+    MMP_VA_DECODE_FALG_NEED_PIX_FORMAT  = 1 << 2U
+};
+
+class VaDecoderParams
+{
+public:
+    VaDecoderParams();
+    ~VaDecoderParams() = default;
+public:
+    VAProfile           profile;
+    PixelFormat         format;
+    uint32_t            level;
+    uint32_t            width;
+    uint32_t            height;
+    uint32_t            maxReference;
+    MmpVaDecodeFlag     flag;
+};
+bool operator==(const VaDecoderParams& left, const VaDecoderParams& right);
+bool operator!=(const VaDecoderParams& left, const VaDecoderParams& right);
+
+class H264StartFrameContext
+{
+public:
+    H264SpsSyntax::ptr         sps;
+    H264PpsSyntax::ptr         pps;
+    H264SliceHeaderSyntax::ptr slice;
+    H264NalSyntax::ptr         nal;
+};
+
+class H264DecodedBitStreamContext
+{
+public:
+    H264SliceHeaderSyntax::ptr slice;
+};
+
+class VaDecodePictureContext
+{
+public:
+    VaDecodePictureContext();
+public:
+    VASurfaceID              surface;
+    std::vector<VABufferID>  paramBuffers;
+    std::vector<VABufferID>  sliceBuffers;
+};
 
 } // namespace Codec
 } // namespace Mmp
