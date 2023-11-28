@@ -13,7 +13,10 @@
 
 #include <Poco/Path.h>
 #include <Poco/String.h>
+#include <Poco/Environment.h>
 #include <Poco/SortedDirectoryIterator.h>
+
+#include "VAUtil.h"
 
 namespace Mmp
 {
@@ -44,6 +47,11 @@ std::vector<std::string> GetRenderNodes()
     std::vector<std::string> renderNodes;
     Poco::SortedDirectoryIterator dirIteratorCurrent(kFindPath);
 	Poco::SortedDirectoryIterator dirIteratorEnd;
+
+    if (Poco::Environment::has("MMP_VAAPI_DEVICE"))
+    {
+        renderNodes.push_back(Poco::Environment::get("MMP_VAAPI_DEVICE"));
+    }
 
 	while (dirIteratorCurrent != dirIteratorEnd)
 	{
@@ -76,7 +84,7 @@ VADevice::VADevice()
     _drmFd = -1;
     _versionMajor = -1;
     _versionMinor = -1;
-    _isInited = false;
+    _reference = 0;
     _holdDrm = true;
     _display = nullptr;
 }
@@ -98,19 +106,20 @@ void VADevice::Uninit()
 bool VADevice::Create()
 {
     std::lock_guard<std::mutex> lock(_mtx);
-    if (_isInited)
+    if (_reference > 0)
     {
+        _reference++;
         return true;
     }
     if (!OpenDrmDevice())
     {
-        CODEC_LOG_ERROR << "OpenDrmDevice fail";
+        VAAPI_LOG_ERROR << "OpenDrmDevice fail";
         goto END;
     }
     _display = vaGetDisplayDRM(_drmFd);
     if (!_display)
     {
-        CODEC_LOG_ERROR << "vaGetDisplayDRM fail, drm fd is: " << _drmFd;
+        VAAPI_LOG_ERROR << "vaGetDisplayDRM fail, drm fd is: " << _drmFd;
         goto END1;
     }
     {
@@ -119,15 +128,15 @@ bool VADevice::Create()
     }
     if (VA_STATUS_SUCCESS != vaInitialize(_display, &_versionMajor, &_versionMinor))
     {
-        CODEC_LOG_ERROR << "vaInitialize fail";
+        VAAPI_LOG_ERROR << "vaInitialize fail";
         goto END2;
     }
     else
     {
-        CODEC_LOG_INFO << "LIBVA API version is: " << _versionMajor << "." << _versionMinor;
+        VAAPI_LOG_INFO << "LIBVA API version is: " << _versionMajor << "." << _versionMinor;
     }
     QueryDeviceCompability();
-    _isInited = true;
+    _reference = 1;
     return true;
 /* END3: */
     vaTerminate(_display);
@@ -144,7 +153,7 @@ END:
 void VADevice::Destroy()
 {
     std::lock_guard<std::mutex> lock(_mtx);
-    if (!_isInited)
+    if (_reference > 1)
     {
         return;
     }
@@ -153,6 +162,43 @@ void VADevice::Destroy()
     _versionMinor = -1;
     _display = nullptr;
     CloseDrmDeivce();
+    _reference = 0;
+}
+
+VADisplay VADevice::GetDisplay()
+{
+    std::lock_guard<std::mutex> lock(_mtx);
+    return _display;
+}
+
+std::set<VAProfile> VADevice::GetSupportProfiles()
+{
+    std::lock_guard<std::mutex> lock(_mtx);
+    if (_supportProfiles.empty())
+    {
+        std::vector<VAProfile> supportProfiles;
+        int maxProfilesNum = vaMaxNumProfiles(_display);
+        supportProfiles.resize(maxProfilesNum);
+        if (vaQueryConfigProfiles(_display, supportProfiles.data(), &maxProfilesNum) == VA_STATUS_SUCCESS)
+        {
+            supportProfiles.resize(maxProfilesNum);
+            VAAPI_LOG_INFO << "Support VA profiel:";
+            for (const auto& profile : supportProfiles)
+            {
+                VAAPI_LOG_INFO << "-- " << VAProfileToStr(profile);
+            }
+        }
+        else
+        {
+            VAAPI_LOG_ERROR << "vaQueryConfigProfiles fail";
+            assert(false);
+        }
+        for (auto& profile: supportProfiles)
+        {
+            _supportProfiles.insert(profile);
+        }
+    }
+    return _supportProfiles;
 }
 
 void VADevice::RegisterNoticeCenter()
@@ -195,22 +241,28 @@ bool VADevice::OpenDrmDevice()
         return true;
     }
     std::vector<std::string> renderNodes = GetRenderNodes();
+    VAAPI_LOG_INFO << "Render node list";
+    for (size_t i=0; i<renderNodes.size(); i++)
+    {
+        VAAPI_LOG_INFO << "-- (" << i << ") render node : " << renderNodes[i];
+    }
     if (renderNodes.empty())
     {
-        CODEC_LOG_ERROR << "Can not find available render node";
+        VAAPI_LOG_ERROR << "Can not find available render node";
         assert(false);
         goto END;
     }
     for (auto renderNode : renderNodes)
     {
-        CODEC_LOG_INFO << "Try to open render node, render node is: " << renderNode;
+        VAAPI_LOG_INFO << "Try to open render node, render node is: " << renderNode;
         _drmFd = open(renderNode.c_str(), O_RDWR | O_CLOEXEC);
         if (_drmFd < 0)
         {
-            CODEC_LOG_ERROR << "Open " << renderNode << " fail";
+            VAAPI_LOG_ERROR << "Open " << renderNode << " fail";
         }
         else
         {
+            VAAPI_LOG_INFO << "Open " << renderNode << " successfully";
             _renderNode = renderNode;
             break;
         }
@@ -240,18 +292,18 @@ void VADevice::QueryDeviceCompability()
         imageCount = vaMaxNumImageFormats(_display);
         if (imageCount <= 0)
         {
-            CODEC_LOG_WARN << "vaMaxNumImageFormats fail";
+            VAAPI_LOG_WARN << "vaMaxNumImageFormats fail";
         }
         else
         {
             _imageFormats.resize(imageCount);
             if (VA_STATUS_SUCCESS != vaQueryImageFormats(_display, _imageFormats.data(), &imageCount))
             {
-                CODEC_LOG_WARN << "vaQueryImageFormats fail";
+                VAAPI_LOG_WARN << "vaQueryImageFormats fail";
             }
             else
             {
-                CODEC_LOG_INFO << "vaQueryImageFormats success, image count is: " << imageCount;
+                VAAPI_LOG_INFO << "vaQueryImageFormats success, image count is: " << imageCount;
                 // Hint : vaMaxNumImageFormats 得到的 image count 为最大可能支持, 实际查询大小可能小于此值
                 _imageFormats.resize(imageCount);
             }

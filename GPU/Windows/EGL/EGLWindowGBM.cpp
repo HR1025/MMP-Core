@@ -32,6 +32,11 @@ std::vector<std::string> GetRenderNodes()
     Poco::SortedDirectoryIterator dirIteratorCurrent(kFindPath);
 	Poco::SortedDirectoryIterator dirIteratorEnd;
 
+    if (Poco::Environment::has("MMP_VAAPI_DEVICE"))
+    {
+        renderNodes.push_back(Poco::Environment::get("MMP_VAAPI_DEVICE"));
+    }
+
 	while (dirIteratorCurrent != dirIteratorEnd)
 	{
         if (Poco::startsWith(Poco::Path(dirIteratorCurrent->path()).getFileName(), std::string("renderD")))
