@@ -14,11 +14,7 @@ VaDecoderParams::VaDecoderParams()
     height = 0;
     maxReference = 0;
     flag = MMP_VA_DECODE_FALG_NEED_MEMORY_NONE;
-}
-
-VaDecodePictureContext::VaDecodePictureContext()
-{
-    surface = VA_INVALID_ID;
+    flag |= MMP_VA_DECODE_FALG_NEED_MEMORY_TYPE;
 }
 
 bool operator==(const VaDecoderParams& left, const VaDecoderParams& right)
@@ -31,6 +27,11 @@ bool operator==(const VaDecoderParams& left, const VaDecoderParams& right)
 bool operator!=(const VaDecoderParams& left, const VaDecoderParams& right)
 {
     return !(left == right);
+}
+
+VaDecodePictureContext::VaDecodePictureContext()
+{
+    surface = VA_INVALID_ID;
 }
 
 } // namespace Codec

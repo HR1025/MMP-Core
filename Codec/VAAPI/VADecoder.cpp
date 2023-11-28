@@ -16,6 +16,8 @@ VADecoder::VADecoder()
 {
     _context = VA_INVALID_ID;
     _config = VA_INVALID_ID;
+    _display = nullptr;
+    _isInited = false;
 }
 
 void VADecoder::SetParameter(Any parameter)
@@ -66,10 +68,15 @@ const std::string& VADecoder::Description()
 
 bool VADecoder::VaInit()
 {
+    if (_isInited)
+    {
+        return true;
+    }
     if (!VADevice::Instance()->Create())
     {
         goto END;
     }
+    _display = VADevice::Instance()->GetDisplay();
     if (!CreateVaConfig())
     {
         goto END1;
@@ -78,10 +85,12 @@ bool VADecoder::VaInit()
     {
         goto END2;
     }
+    _isInited = true;
     return true;
 END2:
     DestroyVaConfig();
 END1:
+    _display = nullptr;
     VADevice::Instance()->Destroy();
 END:
     return false;
@@ -89,10 +98,16 @@ END:
 
 void VADecoder::VaUninit()
 {
+    if (!_isInited)
+    {
+        return;
+    }
     VAAPI_LOG_INFO << "VADecoder uninit";
     DestroyVaConfig();
     DestroyContext();
     VADevice::Instance()->Destroy();
+    _display = nullptr;
+    _isInited = false;
 }
 
 bool VADecoder::CreateContext()
@@ -168,8 +183,11 @@ void VADecoder::SetDecoderParams(const VaDecoderParams& param)
 {
     if (_params != param)
     {
-        OnVaDecoderParamsChange(_params, param);
+        VaDecoderParams oldParams = _params;
         _params = param;
+        VaUninit();
+        VaInit();
+        OnVaDecoderParamsChange(oldParams, param);
     }
 }
 
@@ -237,10 +255,10 @@ void VADecoder::DestroyVaParamBuffer(VABufferID buffer)
     vaDestroyBuffer(_display, buffer);
 }
 
-VABufferID VADecoder::CreateVaSliceParamBuffer(void* data, size_t size)
+VABufferID VADecoder::CreateVaSliceParamBuffer(VABufferType type, void* data, size_t size)
 {
     VABufferID buffer = VA_INVALID_ID;
-    if (vaCreateBuffer(_display, _context, VASliceParameterBufferType, size, 1, (void*)data, &buffer) != VA_STATUS_SUCCESS)
+    if (vaCreateBuffer(_display, _context, type, size, 1, (void*)data, &buffer) != VA_STATUS_SUCCESS)
     {
         VAAPI_LOG_ERROR << "vaCreateBuffer fail, type is: VASliceParameterBufferType";
         assert(false);
@@ -269,21 +287,21 @@ void VADecoder::DestroyVaSliceDataBuffer(VABufferID buffer)
     vaDestroyBuffer(_display, buffer);
 }
 
-bool VADecoder::CommitVaDecodeCommand(const VaDecodePictureContext& picContext)
+bool VADecoder::CommitVaDecodeCommand(VaDecodePictureContext::ptr picContext)
 {
-    if (vaBeginPicture(_display, _context, picContext.surface) != VA_STATUS_SUCCESS)
+    if (vaBeginPicture(_display, _context, picContext->surface) != VA_STATUS_SUCCESS)
     {
         VAAPI_LOG_ERROR << "vaBeginPicture fail";
         assert(false);
         goto END;
     }
-    if (vaRenderPicture(_display, _context, const_cast<VABufferID *>(picContext.paramBuffers.data()), picContext.paramBuffers.size()) != VA_STATUS_SUCCESS)
+    if (vaRenderPicture(_display, _context, const_cast<VABufferID *>(picContext->paramBuffers.data()), picContext->paramBuffers.size()) != VA_STATUS_SUCCESS)
     {
         VAAPI_LOG_ERROR << "vaRenderPicture fail";
         assert(false);
         goto END1;
     }
-    if (vaRenderPicture(_display, _context, const_cast<VABufferID *>(picContext.sliceBuffers.data()), picContext.sliceBuffers.size()) != VA_STATUS_SUCCESS)
+    if (vaRenderPicture(_display, _context, const_cast<VABufferID *>(picContext->sliceBuffers.data()), picContext->sliceBuffers.size()) != VA_STATUS_SUCCESS)
     {
         VAAPI_LOG_ERROR << "vaRenderPicture fail";
         assert(false);

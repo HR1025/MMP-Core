@@ -20,6 +20,9 @@ namespace Mmp
 namespace Codec
 {
 
+/**
+ * @todo 支持以及完善缓冲区机制 
+ */
 class VADecoder : public AbstractDecoder
 {
 public:
@@ -54,11 +57,11 @@ protected: /* Common Interface */
     void DestroyVaImage(VAImage image);
     VABufferID CreateVaParamBuffer(VABufferType type, void* data, size_t size);
     void DestroyVaParamBuffer(VABufferID buffer);
-    VABufferID CreateVaSliceParamBuffer(void* data, size_t size);
+    VABufferID CreateVaSliceParamBuffer(VABufferType type, void* data, size_t size);
     void DestroyVaSliceParamBuffer(VABufferID buffer);
     VABufferID CreateVaSliceDataBuffer(void* data, size_t size);
     void DestroyVaSliceDataBuffer(VABufferID buffer);
-    bool CommitVaDecodeCommand(const VaDecodePictureContext& picContext);
+    bool CommitVaDecodeCommand(VaDecodePictureContext::ptr picContext);
 protected: /* Hook */
     virtual void StartFrame(const Any& context) = 0;
     virtual void DecodedBitStream(const Any& context) = 0;
@@ -66,6 +69,7 @@ protected: /* Hook */
 protected:  /* Event */
     virtual void OnVaDecoderParamsChange(const VaDecoderParams& oldValue, const VaDecoderParams& newValue);
 protected:
+    bool           _isInited;
     VADisplay      _display;
     VAContextID    _context;
     VAConfigID     _config;

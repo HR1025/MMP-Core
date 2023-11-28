@@ -52,37 +52,25 @@ public:
     VaDecoderParams();
     ~VaDecoderParams() = default;
 public:
-    VAProfile           profile;
-    PixelFormat         format;
-    uint32_t            level;
-    uint32_t            width;
-    uint32_t            height;
-    uint32_t            maxReference;
-    MmpVaDecodeFlag     flag;
+    VAProfile                          profile;
+    PixelFormat                        format;
+    uint32_t                           level;
+    uint32_t                           width;
+    uint32_t                           height;
+    uint32_t                           maxReference;
+    uint64_t /* MmpVaDecodeFlag */     flag;
 };
 bool operator==(const VaDecoderParams& left, const VaDecoderParams& right);
 bool operator!=(const VaDecoderParams& left, const VaDecoderParams& right);
 
-class H264StartFrameContext
-{
-public:
-    H264SpsSyntax::ptr         sps;
-    H264PpsSyntax::ptr         pps;
-    H264SliceHeaderSyntax::ptr slice;
-    H264NalSyntax::ptr         nal;
-};
-
-class H264DecodedBitStreamContext
-{
-public:
-    H264SliceHeaderSyntax::ptr slice;
-};
-
 class VaDecodePictureContext
 {
 public:
+    using ptr = std::shared_ptr<VaDecodePictureContext>;
+public:
     VaDecodePictureContext();
 public:
+    Any                      opaque;
     VASurfaceID              surface;
     std::vector<VABufferID>  paramBuffers;
     std::vector<VABufferID>  sliceBuffers;

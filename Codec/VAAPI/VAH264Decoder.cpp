@@ -11,6 +11,28 @@ namespace Mmp
 namespace Codec
 {
 
+class H264StartFrameContext
+{
+public:
+    H264SpsSyntax::ptr         sps;
+    H264PpsSyntax::ptr         pps;
+    H264SliceHeaderSyntax::ptr slice;
+    H264NalSyntax::ptr         nal;
+};
+
+class H264DecodedBitStreamContext
+{
+public:
+    H264SliceHeaderSyntax::ptr slice;
+    Pack::ptr                  pack;
+};
+
+class H264EndFrameContext
+{
+public:
+    
+};
+
 class VAH264ByteReader : public AbstractH26xByteReader
 {
 public:
@@ -60,6 +82,8 @@ private:
 VAH264Decoder::VAH264Decoder()
 {
     _deserialize = std::make_shared<H264Deserialize>();
+    _deserializeContext = std::make_shared<H264ContextSyntax>();
+    _sliceDecoding = std::make_shared<H264SliceDecodingProcess>();
 }
 
 bool VAH264Decoder::Push(Pack::ptr pack)
@@ -71,8 +95,50 @@ bool VAH264Decoder::Push(Pack::ptr pack)
         assert(false);
         return false;
     }
+    _sliceDecoding->SliceDecodingProcess(nal);
+    switch (nal->nal_unit_type)
+    {
+        case H264NaluType::MMP_H264_NALU_TYPE_SPS:
+            _deserializeContext->spsSet[nal->sps->seq_parameter_set_id] = nal->sps;
+        break;
+        case H264NaluType::MMP_H264_NALU_TYPE_PPS:
+            _deserializeContext->ppsSet[nal->pps->pic_parameter_set_id] = nal->pps;
+        break;
+        default:
+        break;
+    }
+    if (!(nal->nal_unit_type == H264NaluType::MMP_H264_NALU_TYPE_SLICE || nal->nal_unit_type == H264NaluType::MMP_H264_NALU_TYPE_IDR))
+    {
+        return true;
+    }
+    {
+        H264StartFrameContext context;
+        context.nal = nal;
+        context.slice = nal->slice;
+        if (_deserializeContext->ppsSet.count(nal->slice->pic_parameter_set_id) == 0)
+        {
+            return true;
+        }
+        context.pps = _deserializeContext->ppsSet[nal->slice->pic_parameter_set_id];
+        if (_deserializeContext->spsSet.count(context.pps->seq_parameter_set_id) == 0)
+        {
+            return true;
+        }
+        context.sps = _deserializeContext->spsSet[context.pps->seq_parameter_set_id];
+        StartFrame(context);
+    }
+    {
+        H264DecodedBitStreamContext context;
+        context.slice = nal->slice;
+        context.pack = pack;
+        DecodedBitStream(context);
+    }
+    {
+        H264EndFrameContext context;
+        EndFrame(context);
+    }
 
-    return false;
+    return true;
 }
 
 void VAH264Decoder::StartFrame(const Any& context)
@@ -82,20 +148,6 @@ void VAH264Decoder::StartFrame(const Any& context)
         assert(false);
         return;
     }
-    static auto fillVAPictureH264 = [this](VAPictureH264& vaPicture, H264SliceHeaderSyntax::ptr slice) -> void
-    {
-        vaPicture.picture_id = _picContext.surface;
-        vaPicture.flags = 0;
-        if (!(slice->field_pic_flag == 1 && slice->bottom_field_flag == 1))
-        {
-            vaPicture.flags = slice->field_pic_flag ? VA_PICTURE_H264_TOP_FIELD : VA_PICTURE_H264_BOTTOM_FIELD;
-        }
-        if (slice->field_pic_flag == 1 || slice->bottom_field_flag == 1)
-        {
-            assert(false);
-        }
-        
-    };
 
     const H264StartFrameContext& _context = RefAnyCast<H264StartFrameContext>(context);
     H264SpsSyntax::ptr sps = _context.sps;
@@ -108,54 +160,116 @@ void VAH264Decoder::StartFrame(const Any& context)
         decoderParam.height != (sps->pic_height_in_map_units_minus1 + 1) * 16
     )
     {
+        decoderParam.profile = H264ProfileToVaProfile((H264Profile)sps->profile_idc);
         decoderParam.width = (sps->pic_width_in_mbs_minus1 + 1) * 16;
         decoderParam.height = (sps->pic_height_in_map_units_minus1 + 1) * 16;
         SetDecoderParams(decoderParam);
     }
 
-
-    VAPictureParameterBufferH264 picParam = {};
     {
-        picParam.picture_width_in_mbs_minus1 = decoderParam.width / 16 - 1;
-        picParam.picture_height_in_mbs_minus1 = decoderParam.height / 16 - 1;
-        picParam.bit_depth_luma_minus8 = sps->bit_depth_luma_minus8;
-        picParam.bit_depth_chroma_minus8 = sps->bit_depth_chroma_minus8;
-        picParam.num_ref_frames = sps->max_num_ref_frames;
-        picParam.seq_fields.bits = 
+        VaDecodePictureContext::ptr picture = std::make_shared<VaDecodePictureContext>();
+        if (!InitH264Picture(picture, _sliceDecoding->GetCurrentPictureContext()))
         {
-            .chroma_format_idc = sps->chroma_format_idc,
-            .residual_colour_transform_flag = sps->separate_colour_plane_flag,
-            .gaps_in_frame_num_value_allowed_flag = sps->gaps_in_frame_num_value_allowed_flag,
-            .frame_mbs_only_flag = sps->frame_mbs_only_flag,
-            .mb_adaptive_frame_field_flag = sps->mb_adaptive_frame_field_flag,
-            .direct_8x8_inference_flag = sps->direct_8x8_inference_flag,
-            .MinLumaBiPredSize8x8 = sps->level_idc >= 31, /* Reference : FFmpeg 6.x */
-            .log2_max_frame_num_minus4 = sps->log2_max_frame_num_minus4,
-            .pic_order_cnt_type = sps->pic_order_cnt_type,
-            .delta_pic_order_always_zero_flag = sps->delta_pic_order_always_zero_flag
-        };
-        picParam.pic_init_qp_minus26 = pps->pic_init_qp_minus26;
-        picParam.pic_init_qs_minus26 = pps->pic_init_qs_minus26;
-        picParam.chroma_qp_index_offset = pps->chroma_qp_index_offset;
-        picParam.second_chroma_qp_index_offset = pps->second_chroma_qp_index_offset;
-        picParam.pic_fields.bits = 
-        {
-            .entropy_coding_mode_flag = pps->entropy_coding_mode_flag,
-            .weighted_pred_flag = pps->weighted_pred_flag,
-            .weighted_bipred_idc = pps->weighted_bipred_idc,
-            .transform_8x8_mode_flag = pps->transform_8x8_mode_flag,
-            .field_pic_flag = slice->field_pic_flag,
-            .constrained_intra_pred_flag = pps->constrained_intra_pred_flag,
-            .pic_order_present_flag = pps->bottom_field_pic_order_in_frame_present_flag,
-            .deblocking_filter_control_present_flag = pps->deblocking_filter_control_present_flag,
-            .redundant_pic_cnt_present_flag = pps->redundant_pic_cnt_present_flag,
-            .reference_pic_flag = nal->nal_ref_idc != 0
-        };
-        picParam.frame_num = slice->frame_num;
+            VAAPI_LOG_ERROR << "InitH264Picture fail";
+            assert(false);
+        }
+        _curPic = picture;
+        _pictures.push_back(picture);
     }
-
-    assert(false);
-    // TODO
+    // VAPictureParameterBufferType
+    {
+        VAPictureParameterBufferH264 picParam = {};
+        {
+            picParam.picture_width_in_mbs_minus1 = sps->pic_width_in_mbs_minus1;
+            picParam.picture_height_in_mbs_minus1 = sps->pic_height_in_map_units_minus1;
+            picParam.bit_depth_luma_minus8 = sps->bit_depth_luma_minus8;
+            picParam.bit_depth_chroma_minus8 = sps->bit_depth_chroma_minus8;
+            picParam.num_ref_frames = sps->max_num_ref_frames;
+            picParam.seq_fields.bits = 
+            {
+                .chroma_format_idc = sps->chroma_format_idc,
+                .residual_colour_transform_flag = sps->separate_colour_plane_flag,
+                .gaps_in_frame_num_value_allowed_flag = sps->gaps_in_frame_num_value_allowed_flag,
+                .frame_mbs_only_flag = sps->frame_mbs_only_flag,
+                .mb_adaptive_frame_field_flag = sps->mb_adaptive_frame_field_flag,
+                .direct_8x8_inference_flag = sps->direct_8x8_inference_flag,
+                .MinLumaBiPredSize8x8 = sps->level_idc >= 31, /* Reference : FFmpeg 6.x */
+                .log2_max_frame_num_minus4 = sps->log2_max_frame_num_minus4,
+                .pic_order_cnt_type = sps->pic_order_cnt_type,
+                .log2_max_pic_order_cnt_lsb_minus4 = sps->log2_max_pic_order_cnt_lsb_minus4,
+                .delta_pic_order_always_zero_flag = sps->delta_pic_order_always_zero_flag
+            };
+            picParam.pic_init_qp_minus26 = pps->pic_init_qp_minus26;
+            picParam.pic_init_qs_minus26 = pps->pic_init_qs_minus26;
+            picParam.chroma_qp_index_offset = pps->chroma_qp_index_offset;
+            picParam.second_chroma_qp_index_offset = pps->second_chroma_qp_index_offset;
+            picParam.pic_fields.bits = 
+            {
+                .entropy_coding_mode_flag = pps->entropy_coding_mode_flag,
+                .weighted_pred_flag = pps->weighted_pred_flag,
+                .weighted_bipred_idc = pps->weighted_bipred_idc,
+                .transform_8x8_mode_flag = pps->transform_8x8_mode_flag,
+                .field_pic_flag = slice->field_pic_flag,
+                .constrained_intra_pred_flag = pps->constrained_intra_pred_flag,
+                .pic_order_present_flag = pps->bottom_field_pic_order_in_frame_present_flag,
+                .deblocking_filter_control_present_flag = pps->deblocking_filter_control_present_flag,
+                .redundant_pic_cnt_present_flag = pps->redundant_pic_cnt_present_flag,
+                .reference_pic_flag = nal->nal_ref_idc != 0
+            };
+            picParam.frame_num = slice->frame_num;
+        }
+        // VAPictureParameterBufferH264::CurrPic
+        {
+            H264PictureContext::ptr picContext = AnyCast<H264PictureContext::ptr>(_curPic->opaque);
+            picParam.CurrPic.picture_id = _curPic->surface;
+            picParam.CurrPic.frame_idx = picContext->referenceFlag & H264PictureContext::used_for_long_term_reference ? picContext->long_term_frame_idx : picContext->FrameNum;
+            picParam.CurrPic.flags = 0;
+            if (slice->bottom_field_flag == 1)
+            {
+                picParam.CurrPic.flags |= VA_PICTURE_H264_BOTTOM_FIELD;
+            }
+            else if (/* slice->bottom_field_flag == 0 && */ slice->field_pic_flag == 1)
+            {
+                picParam.CurrPic.flags |= VA_PICTURE_H264_TOP_FIELD;
+            }
+            if (picContext->referenceFlag & H264PictureContext::used_for_long_term_reference)
+            {
+                picParam.CurrPic.flags |= VA_PICTURE_H264_LONG_TERM_REFERENCE;
+            }
+            else if (picContext->referenceFlag & H264PictureContext::used_for_short_term_reference)
+            {
+                picParam.CurrPic.flags |= VA_PICTURE_H264_SHORT_TERM_REFERENCE;
+            }
+            picParam.CurrPic.TopFieldOrderCnt = picContext->TopFieldOrderCnt;
+            picParam.CurrPic.BottomFieldOrderCnt = picContext->BottomFieldOrderCnt;
+        }
+        // VAPictureParameterBufferH264::ReferenceFrames (TODO)
+        {
+            // assert(false);
+        }
+        _curPic->paramBuffers.push_back(CreateVaParamBuffer(VAPictureParameterBufferType, &picParam, sizeof(VAPictureParameterBufferH264)));
+    }
+    // VAIQMatrixBufferType
+    {
+        VAIQMatrixBufferH264 iqMatix = {};
+        for (size_t i=0; i<pps->ScalingList4x4.size() && i<6; i++)
+        {
+            const std::vector<int32_t>& ScalingList4 = pps->ScalingList4x4[i];
+            for (size_t j=0; j<ScalingList4.size() && j<sizeof(iqMatix.ScalingList4x4); j++)
+            {
+                iqMatix.ScalingList4x4[i][j] = ScalingList4[j];
+            }
+        }
+        for (size_t i=0; i<pps->ScalingList8x8.size() && i<2; i++)
+        {
+            const std::vector<int32_t>& ScalingList8 = pps->ScalingList8x8[i];
+            for (size_t j=0; j<ScalingList8.size() && j<sizeof(iqMatix.ScalingList8x8); j++)
+            {
+                iqMatix.ScalingList8x8[i][j] = ScalingList8[j];
+            }
+        }
+        _curPic->paramBuffers.push_back(CreateVaParamBuffer(VAIQMatrixBufferType, &iqMatix, sizeof(VAIQMatrixBufferH264)));
+    }
 }
 
 void VAH264Decoder::DecodedBitStream(const Any& context)
@@ -165,77 +279,15 @@ void VAH264Decoder::DecodedBitStream(const Any& context)
         assert(false);
         return;
     }
-    static auto fillVaRefPicList = []() -> void
-    {
-
-    };
-    static auto fillVaPredWeightTable = [](VASliceParameterBufferH264& sliceParam, H264SliceHeaderSyntax::ptr slice) -> void
-    {
-        H264PredictionWeightTableSyntax::ptr pwt = slice->pwt;
-        // num_ref_idx_l0_active_minus1
-        for (uint32_t i=0; i<=slice->num_ref_idx_l0_active_minus1; i++)
-        {
-            if (pwt->luma_weight_l0_flag[i])
-            {
-                sliceParam.luma_weight_l0[i] = pwt->luma_weight_l0[i];
-                sliceParam.luma_offset_l0[i] = pwt->luma_offset_l0[i];
-            }
-            else
-            {
-                sliceParam.luma_weight_l0[i] = 1 << pwt->luma_log2_weight_denom;
-                sliceParam.luma_offset_l0[i] = 0;
-            }
-            for (size_t j=0; j<2; j++)
-            {
-                if (pwt->chroma_weight_l0_flag[i])
-                {
-                    sliceParam.chroma_weight_l0[i][j] = pwt->chroma_weight_l0[i][j];
-                    sliceParam.chroma_offset_l0[i][j] = pwt->chroma_offset_l0[i][j];
-                }
-                else
-                {
-                    sliceParam.chroma_weight_l0[i][j] = 1 << pwt->luma_log2_weight_denom;
-                    sliceParam.chroma_offset_l0[i][j] = 0;
-                }
-            }
-        }
-        // num_ref_idx_l1_active_minus1
-        for (uint32_t i=0; i<=slice->num_ref_idx_l1_active_minus1; i++)
-        {
-            if (pwt->luma_weight_l1_flag[i])
-            {
-                sliceParam.luma_weight_l1[i] = pwt->luma_weight_l1[i];
-                sliceParam.luma_offset_l1[i] = pwt->luma_offset_l1[i];
-            }
-            else
-            {
-                sliceParam.luma_weight_l1[i] = 1 << pwt->luma_log2_weight_denom;
-                sliceParam.luma_offset_l1[i] = 0;
-            }
-            for (size_t j=0; j<2; j++)
-            {
-                if (pwt->chroma_weight_l1_flag[i])
-                {
-                    sliceParam.chroma_weight_l1[i][j] = pwt->chroma_weight_l1[i][j];
-                    sliceParam.chroma_offset_l1[i][j] = pwt->chroma_offset_l1[i][j];
-                }
-                else
-                {
-                    sliceParam.chroma_weight_l1[i][j] = 1 << pwt->luma_log2_weight_denom;
-                    sliceParam.chroma_offset_l1[i][j] = 0;
-                }
-            }
-        }
-    };
-
     const H264DecodedBitStreamContext& _contex = RefAnyCast<H264DecodedBitStreamContext>(context);
     H264SliceHeaderSyntax::ptr slice = _contex.slice;
+    Pack::ptr pack = _contex.pack;
     VASliceParameterBufferH264 sliceParameter = {};
     {
-        sliceParameter.slice_data_size = 0; // TODO
+        sliceParameter.slice_data_size = pack->GetSize();
         sliceParameter.slice_data_offset = 0;
         sliceParameter.slice_data_flag = VA_SLICE_DATA_FLAG_ALL;
-        sliceParameter.slice_data_bit_offset = 0; // TODO
+        sliceParameter.slice_data_bit_offset = slice->slice_data_bit_offset;
         sliceParameter.first_mb_in_slice = slice->first_mb_in_slice;
         sliceParameter.slice_type = H264SliceTypeToVaSliceType((H264SliceType)slice->slice_type);
         sliceParameter.num_ref_idx_l0_active_minus1 = slice->num_ref_idx_l0_active_minus1;
@@ -245,46 +297,129 @@ void VAH264Decoder::DecodedBitStream(const Any& context)
         sliceParameter.disable_deblocking_filter_idc = slice->disable_deblocking_filter_idc;
         sliceParameter.slice_alpha_c0_offset_div2 = slice->slice_alpha_c0_offset_div2;
         sliceParameter.slice_beta_offset_div2 = slice->slice_beta_offset_div2;
-        sliceParameter.luma_log2_weight_denom = slice->pwt->luma_log2_weight_denom;
-        sliceParameter.chroma_log2_weight_denom = slice->pwt->chroma_log2_weight_denom;
+        sliceParameter.luma_log2_weight_denom = slice->pwt ? slice->pwt->luma_log2_weight_denom : 0;
+        sliceParameter.chroma_log2_weight_denom = slice->pwt ? slice->pwt->chroma_log2_weight_denom : 0;
     }
-    // TODO
-    fillVaPredWeightTable(sliceParameter, slice);
-    // TODO
-    assert(false);
+    // VASliceParameterBufferH264::RefPicList0 (TODO)
+    {
+        for (size_t i=0; i<sizeof(sliceParameter.RefPicList0)/sizeof(VAPictureH264); i++)
+        {
+            sliceParameter.RefPicList0[i].picture_id = VA_INVALID_ID;
+            sliceParameter.RefPicList0[i].flags = VA_PICTURE_H264_INVALID;
+            sliceParameter.RefPicList0[i].TopFieldOrderCnt = 0;
+            sliceParameter.RefPicList0[i].BottomFieldOrderCnt = 0;
+        }
+    }
+    // VASliceParameterBufferH264::RefPicList1 (TODO)
+    {
+        for (size_t i=0; i<sizeof(sliceParameter.RefPicList1)/sizeof(VAPictureH264); i++)
+        {
+            sliceParameter.RefPicList1[i].picture_id = VA_INVALID_ID;
+            sliceParameter.RefPicList1[i].flags = VA_PICTURE_H264_INVALID;
+            sliceParameter.RefPicList1[i].TopFieldOrderCnt = 0;
+            sliceParameter.RefPicList1[i].BottomFieldOrderCnt = 0;
+        }
+    }
+    if (slice->pwt)
+    {
+        H264PredictionWeightTableSyntax::ptr pwt = slice->pwt;
+        for (uint32_t i=0; i<=slice->num_ref_idx_l0_active_minus1; i++)
+        {
+            if (pwt->luma_weight_l0_flag[i])
+            {
+                sliceParameter.luma_weight_l0[i] = pwt->luma_weight_l0[i];
+                sliceParameter.luma_offset_l0[i] = pwt->luma_offset_l0[i];
+            }
+            else
+            {
+                sliceParameter.luma_weight_l0[i] = 1 << pwt->luma_log2_weight_denom;
+                sliceParameter.luma_offset_l0[i] = 0;
+            }
+            for (size_t j=0; j<2; j++)
+            {
+                if (pwt->chroma_weight_l0_flag[i])
+                {
+                    sliceParameter.chroma_weight_l0[i][j] = pwt->chroma_weight_l0[i][j];
+                    sliceParameter.chroma_offset_l0[i][j] = pwt->chroma_offset_l0[i][j];
+                }
+                else
+                {
+                    sliceParameter.chroma_weight_l0[i][j] = 1 << pwt->luma_log2_weight_denom;
+                    sliceParameter.chroma_offset_l0[i][j] = 0;
+                }
+            }
+        }
+        for (uint32_t i=0; i<=slice->num_ref_idx_l1_active_minus1; i++)
+        {
+            if (pwt->luma_weight_l1_flag[i])
+            {
+                sliceParameter.luma_weight_l1[i] = pwt->luma_weight_l1[i];
+                sliceParameter.luma_offset_l1[i] = pwt->luma_offset_l1[i];
+            }
+            else
+            {
+                sliceParameter.luma_weight_l1[i] = 1 << pwt->luma_log2_weight_denom;
+                sliceParameter.luma_offset_l1[i] = 0;
+            }
+            for (size_t j=0; j<2; j++)
+            {
+                if (pwt->chroma_weight_l1_flag[i])
+                {
+                    sliceParameter.chroma_weight_l1[i][j] = pwt->chroma_weight_l1[i][j];
+                    sliceParameter.chroma_offset_l1[i][j] = pwt->chroma_offset_l1[i][j];
+                }
+                else
+                {
+                    sliceParameter.chroma_weight_l1[i][j] = 1 << pwt->luma_log2_weight_denom;
+                    sliceParameter.chroma_offset_l1[i][j] = 0;
+                }
+            }
+        }
+    }
+    _curPic->sliceBuffers.push_back(CreateVaSliceParamBuffer(VASliceDataBufferType, &sliceParameter, sizeof(VASliceParameterBufferH264)));
+    _curPic->sliceBuffers.push_back(CreateVaSliceParamBuffer(VASliceDataBufferType, pack->GetData(), pack->GetSize()));
 }
 
 void VAH264Decoder::EndFrame(const Any& context)
 {
-    assert(false);
-    // TODO
+    CommitVaDecodeCommand(_curPic);
+    _curPic = nullptr;
+}
+
+bool VAH264Decoder::InitH264Picture(VaDecodePictureContext::ptr picture, H264PictureContext::ptr base)
+{
+    picture->opaque = base;
+    VaDecoderParams decoderParam = GetDecoderParams();
+    std::vector<VASurfaceAttrib> attributes;
+    if (decoderParam.flag & MmpVaDecodeFlag::MMP_VA_DECODE_FALG_NEED_MEMORY_TYPE)
+    {
+        VASurfaceAttrib attribute;
+        attribute.type = VASurfaceAttribMemoryType;
+        attribute.flags = VA_SURFACE_ATTRIB_SETTABLE;
+        attribute.value.type = VAGenericValueTypeInteger;
+        attribute.value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_VA;
+        attributes.push_back(attribute);
+    }
+    if (decoderParam.flag & MmpVaDecodeFlag::MMP_VA_DECODE_FALG_NEED_PIX_FORMAT)
+    {
+        // TODO
+        assert(false);
+    }
+    picture->surface = CreateVaSurface(attributes);
+    return picture->surface != VA_INVALID_ID ? true : false;
+}
+
+void VAH264Decoder::UninitH264Picture(VaDecodePictureContext::ptr picture)
+{
+    if (picture->surface != VA_INVALID_ID)
+    {
+        DestroyVaSurface(picture->surface);
+        picture->surface = VA_INVALID_ID;
+    }
 }
 
 void VAH264Decoder::OnVaDecoderParamsChange(const VaDecoderParams& oldValue, const VaDecoderParams& newValue)
 {
-    if (_picContext.surface != VA_INVALID_ID)
-    {
-        DestroyVaSurface(_picContext.surface);
-        _picContext.surface = VA_INVALID_ID;
-    }
-    std::vector<VASurfaceAttrib> attributes;
-    if (newValue.flag & MMP_VA_DECODE_FALG_NEED_MEMORY_TYPE)
-    {
-        VASurfaceAttrib attribute = {};
-        {
-            attribute.type = VASurfaceAttribMemoryType;
-            attribute.flags = VA_SURFACE_ATTRIB_SETTABLE;
-            attribute.value.type = VAGenericValueTypeInteger;
-            attribute.value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_VA;
-        };
-        attributes.push_back(attribute);
-    }
-    if (newValue.flag && MMP_VA_DECODE_FALG_NEED_MEMORY_TYPE)
-    {
-        assert(false);
-        // TODO
-    }
-    _picContext.surface == CreateVaSurface(attributes);
     VADecoder::OnVaDecoderParamsChange(oldValue, newValue);
 }
 
