@@ -5,6 +5,8 @@ set(Codec_INCS)
 set(Codec_LIB_DIR)
 set(Codec_LIBS)
 
+option(ENBALE_H26x_DEBUG "H26x 子仓库调试模式" OFF)
+
 list(APPEND Codec_INCS
     ${MMP_CORE_PRO_TOP_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -116,6 +118,14 @@ target_link_libraries(MMP_Codec PUBLIC ${Codec_LIBS} PRIVATE Poco::Foundation Mm
 list(LENGTH Codec_LIB_DIR Codec_LIB_DIR_LEN)
 if (NOT(${Codec_LIB_DIR_LEN} EQUAL 0))
     target_link_directories(MMP_Codec PUBLIC ${Codec_LIB_DIR})
+endif()
+if (ENBALE_H26x_DEBUG)
+    target_compile_definitions(MMP_Codec PRIVATE MMP_H26X_DEBUG_MODE)
+    target_compile_definitions(MMP_Codec PRIVATE ENABLE_MMP_SD_DEBUG)
+    target_compile_definitions(MMP_Codec PRIVATE MMP_H26x_EXTERN_HEADER="Codec/CodecCommon.h")
+    target_compile_definitions(MMP_Codec PRIVATE H26x_LOG_TERMINATOR="") # MMP 日志会自动换行, 故换行符并不需要
+    target_compile_definitions(MMP_Codec PRIVATE H26x_LOG_INFO=CODEC_LOG_INFO)
+    target_compile_definitions(MMP_Codec PRIVATE H26x_LOG_ERROR=CODEC_LOG_ERROR)
 endif()
 if (USE_VAAPI)
     target_compile_definitions(MMP_Codec PRIVATE USE_VAAPI)
