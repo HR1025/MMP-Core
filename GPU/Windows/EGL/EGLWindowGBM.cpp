@@ -17,6 +17,7 @@
 
 #include <Poco/Path.h>
 #include <Poco/String.h>
+#include <Poco/Environment.h>
 #include <Poco/SortedDirectoryIterator.h>
 
 #include "Common/EventTag.h"

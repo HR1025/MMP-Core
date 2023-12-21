@@ -5,6 +5,9 @@ namespace Mmp
 namespace Codec
 {
 
+/**
+ * @sa https://github.com/intel/libva/blob/master/va/va.h
+ */
 std::string VAProfileToStr(VAProfile profile)
 {
     switch (profile)
@@ -43,9 +46,11 @@ std::string VAProfileToStr(VAProfile profile)
         case VAProfileHEVCSccMain444: return "VAProfileHEVCSccMain444";
         case VAProfileAV1Profile0: return "VAProfileAV1Profile0";
         case VAProfileAV1Profile1: return "VAProfileAV1Profile1";
+#if 0
         case VAProfileHEVCSccMain444_10: return "VAProfileHEVCSccMain444_10";
         case VAProfileProtected: return "VAProfileProtected";
         case VAProfileH264High10: return "VAProfileH264High10";
+#endif
         default:
             return "VAProfileUnknown";
     }

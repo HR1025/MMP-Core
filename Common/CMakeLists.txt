@@ -66,6 +66,8 @@ list(APPEND Common_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/Promise.h
     ${CMAKE_CURRENT_SOURCE_DIR}/TrackTask.h
     ${CMAKE_CURRENT_SOURCE_DIR}/TrackTask.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TaskQueue.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/TaskQueue.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ThreadPool.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ThreadPool.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/EventMessage.h

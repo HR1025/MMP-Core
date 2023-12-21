@@ -7,11 +7,14 @@ namespace Mmp
 namespace Codec
 {
 
+/**
+ * @todo 处理 libva 的版本兼容性问题
+ */
 VAProfile H264ProfileToVaProfile(H264Profile profile)
 {
     switch (profile)
     {
-        case MMP_H264_PROFILE_HIGH10: return VAProfileH264High10;
+        case MMP_H264_PROFILE_HIGH10: /* return VAProfileH264High10; */
         case MMP_H264_PROFILE_HIGH: return VAProfileH264High;
         case MMP_H264_PROFILE_MAIN: return VAProfileH264Main;
         default:
