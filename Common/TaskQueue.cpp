@@ -54,7 +54,7 @@ void TaskQueue::Stop(bool sync)
             task->Wait();
         }
     }
-    _isRunning = true;
+    _isRunning = false;
     _conds.notify_one();
     _scheduler->join();
 }
