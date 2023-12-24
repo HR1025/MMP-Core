@@ -36,11 +36,11 @@ private:
 private:
     void OnVaDecoderParamsChange(const VaDecoderParams& oldValue, const VaDecoderParams& newValue) override;
 private:
-    H264Deserialize::ptr                      _deserialize;
-    H264ContextSyntax::ptr                    _deserializeContext;
-    H264SliceDecodingProcess::ptr             _sliceDecoding;
-    std::vector<VaDecodePictureContext::ptr>  _pictures;
-    VaDecodePictureContext::ptr               _curPic;
+    H264Deserialize::ptr                                        _deserialize;
+    H264ContextSyntax::ptr                                      _deserializeContext;
+    H264SliceDecodingProcess::ptr                               _sliceDecoding;
+    std::map<uint64_t /* id */, VaDecodePictureContext::ptr>    _pictures;
+    VaDecodePictureContext::ptr                                 _curPic;
 };
 
 } // namespace Codec
