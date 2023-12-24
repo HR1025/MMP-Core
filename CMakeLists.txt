@@ -28,8 +28,8 @@ option(USE_VULKAN      "Graphics Library Vulkan"      OFF)
 option(USE_VAAPI       "An implemention for VA-API(Video Acceleration API)" OFF)
 option(USE_SPRIV_CROSS "Use to convert SPRIV to other shader languages" ON)
 option(USE_GBM         "EGL backend GBM"              OFF)
-option(USE_API_RPC           "RPC(Remote Process Communication) Interface (implement through HTTP OR WEBSOCKET etc.)" OFF)
-
+option(USE_API_RPC     "RPC(Remote Process Communication) Interface (implement through HTTP OR WEBSOCKET etc.)" OFF)
+option(USE_OPENH264    "H264 Software Encoder/Decoder" OFF)
 option(NOT_AUTO_EGL "Not auto append EGL dependence" OFF)
 #################################################################################################
 #                              Project Configuration(END)                                       #
@@ -52,6 +52,9 @@ endif()
 
 include(eigen/eigen)
 add_subdirectory(CMake/LodePng)
+if (USE_OPENH264)
+    add_subdirectory(CMake/openH264)
+endif()
 add_subdirectory(Extension/GLEW)
 add_subdirectory(Common)
 add_subdirectory(Codec)
@@ -78,6 +81,7 @@ message("  -- USE_VULKAN : ${USE_VULKAN}")
 message("  -- USE_VAAPI : ${USE_VAAPI}")
 message("  -- USE_SPRIV_CROSS : ${USE_SPRIV_CROSS}")
 message("  -- USE_API_RPC : ${USE_API_RPC}")
+message("  -- USE_OPENH264 : ${USE_OPENH264}")
 #################################################################################################
 #                                   Project Info(END)                                         #
 #################################################################################################
