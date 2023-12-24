@@ -15,7 +15,7 @@ jobs:
       - run : rm -rf build
       - run : mkdir build
       - run : git submodule update --init --recursive
-      - run : cd build && cmake .. -DUSE_OPENGL=ON -DUSE_EGL=ON -DUSE_GBM=ON -DUSE_SDL=ON -DUSE_SPRIV_CROSS=ON -DUSE_VULKAN=ON -DUSE_X11=ON -DUSE_VAAPI=ON && make -j4
+      - run : cd build && cmake .. -DUSE_OPENGL=ON -DUSE_EGL=ON -DUSE_GBM=ON -DUSE_SDL=ON -DUSE_SPRIV_CROSS=ON -DUSE_VULKAN=ON -DUSE_X11=ON -DUSE_VAAPI=ON -DUSE_OPENH264=ON && make -j4
 
   linux-gcc-make:
     runs-on: ubuntu-20.04

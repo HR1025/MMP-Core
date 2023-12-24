@@ -22,3 +22,6 @@
 [submodule "Extension/VulkanMemoryAllocator"]
 	path = Extension/VulkanMemoryAllocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "Extension/openh264"]
+	path = Extension/openh264
+	url = https://github.com/cisco/openh264.git
