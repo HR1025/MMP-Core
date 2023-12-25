@@ -3,7 +3,7 @@
 #include <cassert>
 #include <functional>
 
-#include "SharedData.h"
+#include "NormalSharedData.h"
 #include "AllocateMethodFactory.h"
 #include "SharedDataDecorator.h"
 
@@ -157,7 +157,7 @@ AbstractSharedData::ptr SharedDataPool::Request(uint32_t waitTimeMs)
         std::lock_guard<std::mutex> lock(_mtx);
         if (_buffers.count(slot) == 0)
         {
-            _buffers[slot] = std::make_shared<SharedData>(_dataSize, _allocateMethod);
+            _buffers[slot] = std::make_shared<NormalSharedData>(_dataSize, _allocateMethod);
             _allocatedSlot++;
         }
         buffer = _buffers[slot];

@@ -7,7 +7,7 @@
 // 
 
 #include <string>
-#include "Common/SharedData.h"
+#include "Common/NormalSharedData.h"
 #include "SLCommon.h"
 
 namespace Mmp

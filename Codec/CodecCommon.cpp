@@ -22,11 +22,5 @@ const std::string CodecTypeToStr(CodecType type)
     }
 }
 
-Pack::Pack(size_t size, AbstractAllocateMethod::ptr allocateMethod)
-    : SharedData(size, allocateMethod)
-{
-
-}
-
 } // namespace Codec
 } // namespace Mmp

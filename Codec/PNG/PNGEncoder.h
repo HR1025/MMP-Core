@@ -27,7 +27,7 @@ public:
     void SetParameter(Any parameter) override;
     Any GetParamter() override;
     bool Push(AbstractFrame::ptr frame) override;
-    bool Pop(Pack::ptr& pack) override;
+    bool Pop(AbstractPack::ptr& pack) override;
     bool CanPush() override;
     bool CanPop() override;
     void SetListener(OnStatusChange onStatusChange) override;
@@ -39,7 +39,7 @@ private:
     std::recursive_mutex _mutex;
     PNGEncoderParameter  _setting;
     std::atomic<bool>    _inEncoding;
-    Pack::ptr            _pack;
+    NormalPack::ptr      _pack;
     OnStatusChange       _onStatusChange;
 };
 

@@ -25,7 +25,7 @@ public:
     VAH264Decoder();
     ~VAH264Decoder() = default;
 public: /* override AbstractDecoder function */
-    bool Push(Pack::ptr pack) override;
+    bool Push(AbstractPack::ptr pack) override;
 private:
     void StartFrame(const Any& context) override;
     void DecodedBitStream(const Any& context) override;

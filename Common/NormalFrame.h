@@ -1,31 +1,28 @@
 //
-// SharedData.h
+// NormalFrame.h
 //
 // Library: Common
 // Package: Memory
-// Module:  SharedData
+// Module:  Frame
 // 
 
 #pragma once
 
-#include <memory>
-
-#include "AbstractAllocateMethod.h"
-#include "AbstractSharedData.h"
+#include "AbstractFrame.h"
 
 namespace Mmp
 {
 
-class SharedData : public AbstractSharedData
+/**
+ * @brief 默认原生数据帧实现 
+ */
+class NormalFrame : public AbstractFrame
 {
 public:
-    using ptr = std::shared_ptr<SharedData>;
+    using ptr = std::shared_ptr<NormalFrame>();
 public:
-    /**
-     * @note `nullptr` means to use default memory allocate method
-     */
-    explicit SharedData(size_t size, AbstractAllocateMethod::ptr allocateMethod = nullptr);
-    ~SharedData();
+    explicit NormalFrame(size_t size, AbstractAllocateMethod::ptr allocateMethod = nullptr);
+    ~NormalFrame();
 public:
     void     SetCapacity(size_t size) override;
     size_t   GetCapcaity() override;

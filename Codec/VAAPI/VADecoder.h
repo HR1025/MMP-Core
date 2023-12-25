@@ -33,7 +33,7 @@ public:
 public:
     void SetParameter(Any parameter) override;
     Any GetParamter() override;
-    bool Push(Pack::ptr pack) override;
+    bool Push(AbstractPack::ptr pack) override;
     bool Pop(AbstractFrame::ptr& frame) override;
     bool CanPush() override;
     bool CanPop() override;

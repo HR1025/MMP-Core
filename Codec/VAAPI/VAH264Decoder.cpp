@@ -50,7 +50,7 @@ class H264DecodedBitStreamContext
 {
 public:
     H264SliceHeaderSyntax::ptr slice;
-    Pack::ptr                  pack;
+    AbstractPack::ptr          pack;
 };
 
 class H264EndFrameContext
@@ -62,7 +62,7 @@ public:
 class VAH264ByteReader : public AbstractH26xByteReader
 {
 public:
-    VAH264ByteReader(Pack::ptr pack)
+    VAH264ByteReader(AbstractPack::ptr pack)
     {
         _pack = pack;
         _end = _pack->GetSize() + 1;
@@ -102,7 +102,7 @@ public:
 private:
     uint32_t _cur;
     uint32_t _end;
-    Pack::ptr _pack;
+    AbstractPack::ptr _pack;
 };
 
 VAH264Decoder::VAH264Decoder()
@@ -112,7 +112,7 @@ VAH264Decoder::VAH264Decoder()
     _sliceDecoding = std::make_shared<H264SliceDecodingProcess>();
 }
 
-bool VAH264Decoder::Push(Pack::ptr pack)
+bool VAH264Decoder::Push(AbstractPack::ptr pack)
 {
     H26xBinaryReader::ptr br = std::make_shared<H26xBinaryReader>(std::make_shared<VAH264ByteReader>(pack));
     H264NalSyntax::ptr nal = std::make_shared<H264NalSyntax>();
@@ -310,7 +310,7 @@ void VAH264Decoder::DecodedBitStream(const Any& context)
     }
     const H264DecodedBitStreamContext& _contex = RefAnyCast<H264DecodedBitStreamContext>(context);
     H264SliceHeaderSyntax::ptr slice = _contex.slice;
-    Pack::ptr pack = _contex.pack;
+    AbstractPack::ptr pack = _contex.pack;
     VASliceParameterBufferH264 sliceParameter = {};
     {
         sliceParameter.slice_data_size = pack->GetSize();

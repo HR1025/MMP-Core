@@ -12,7 +12,7 @@
 #include <string>
 
 #include "AbstractAllocateMethod.h"
-#include "SharedData.h"
+#include "AbstractSharedData.h"
 
 namespace Mmp
 {

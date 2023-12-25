@@ -51,7 +51,7 @@ Any PngDecoder::GetParamter()
     return _setting;
 }
 
-bool PngDecoder::Push(Pack::ptr pack)
+bool PngDecoder::Push(AbstractPack::ptr pack)
 {
     if (_inDecoding) return false;
     std::lock_guard<std::recursive_mutex> lock(_mutex);
@@ -84,7 +84,7 @@ bool PngDecoder::Push(Pack::ptr pack)
         std::shared_ptr<PngAllocateMethod> allocateMethod = std::dynamic_pointer_cast<PngAllocateMethod>(AllocateMethodFactory::DefaultFactory().CreateAllocateMethod("LodePngAllocateMethod"));
         allocateMethod->data = pixel;
         allocateMethod->size = width * height * (_setting.format == PixelFormat::RGB888 ? 3 : 4);
-        PictureFrame::ptr picture = std::make_shared<PictureFrame>(PixelsInfo({(int32_t)width, (int32_t)height, 8, _setting.format}), allocateMethod);
+        NormalPicture::ptr picture = std::make_shared<NormalPicture>(PixelsInfo({(int32_t)width, (int32_t)height, 8, _setting.format}), allocateMethod);
         _picture = picture;
         _onStatusChange(DecoderStatus::D_SUCESS, "");
     }

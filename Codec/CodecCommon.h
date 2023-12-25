@@ -16,8 +16,14 @@
 #include "Common/PixelsInfo.h"
 #include "Common/PixelFormat.h"
 #include "Common/LogMessage.h"
-#include "Common/SharedData.h"
+#include "Common/AbstractSharedData.h"
+#include "Common/AbstractPack.h"
 #include "Common/AbstractFrame.h"
+#include "Common/AbstractPicture.h"
+#include "Common/NormalSharedData.h"
+#include "Common/NormalPack.h"
+#include "Common/NormalFrame.h"
+#include "Common/NormalPicture.h"
 
 #define CODEC_LOG_TRACE   MMP_MLOG_TRACE("CODEC")    
 #define CODEC_LOG_DEBUG   MMP_MLOG_DEBUG("CODEC")    
@@ -40,19 +46,6 @@ enum class CodecType
 };
 const std::string CodecTypeToStr(CodecType type);
 extern std::ostream& operator<<(std::ostream& os, CodecType type);
-
-/**
- * @brief 压缩数据格式
- */
-class Pack : public SharedData
-{
-public:
-    using ptr = std::shared_ptr<Pack>;
-public:
-    explicit Pack(size_t size, AbstractAllocateMethod::ptr allocateMethod = nullptr);
-public:
-    Any sideData;
-};
 
 
 /**

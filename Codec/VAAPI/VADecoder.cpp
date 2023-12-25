@@ -30,7 +30,7 @@ Any VADecoder::GetParamter()
     return Any();
 }
 
-bool VADecoder::Push(Pack::ptr pack)
+bool VADecoder::Push(AbstractPack::ptr pack)
 {
     return false;
 }

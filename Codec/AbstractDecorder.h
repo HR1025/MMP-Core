@@ -57,7 +57,7 @@ public:
     /**
      * @brief 提交压缩数据
      */
-    virtual bool Push(Pack::ptr pack) = 0;
+    virtual bool Push(AbstractPack::ptr pack) = 0;
     /**
      * @brief 获取解压数据
      */

@@ -1,4 +1,4 @@
-#include "SharedData.h"
+#include "NormalSharedData.h"
 
 #include <cassert>
 #include <algorithm>
@@ -8,7 +8,7 @@
 namespace Mmp
 {
 
-SharedData::SharedData(size_t size, AbstractAllocateMethod::ptr allocateMethod)
+NormalSharedData::NormalSharedData(size_t size, AbstractAllocateMethod::ptr allocateMethod)
 {
     _allocateMethod = allocateMethod ? allocateMethod : AllocateMethodFactory::DefaultFactory().CreateAllocateMethod("NormalAllocateMethod");
     if (size != 0)
@@ -25,12 +25,12 @@ SharedData::SharedData(size_t size, AbstractAllocateMethod::ptr allocateMethod)
     }
 }
 
-SharedData::~SharedData()
+NormalSharedData::~NormalSharedData()
 {
     // Hint : 内存回收完全交由 _allocateMethod 进行处理
 }
 
-void  SharedData::SetCapacity(size_t size)
+void  NormalSharedData::SetCapacity(size_t size)
 {
     // (1) allloc memory
     if (size !=0 && _capacity == 0 /* && size == 0 */)
@@ -48,28 +48,28 @@ void  SharedData::SetCapacity(size_t size)
     }
 }
 
-size_t SharedData::GetCapcaity()
+size_t NormalSharedData::GetCapcaity()
 {
     return _capacity;
 }
 
-void SharedData::SetSize(size_t size)
+void NormalSharedData::SetSize(size_t size)
 {
     assert(size <= _capacity);
     _size = std::min(size, _capacity);
 }
 
-size_t SharedData::GetSize()
+size_t NormalSharedData::GetSize()
 {
     return _size;
 }
 
-void* SharedData::GetData(uint64_t offset)
+void* NormalSharedData::GetData(uint64_t offset)
 {
     return offset < _capacity ? (uint8_t*)_allocateMethod->GetAddress(offset) : nullptr;
 }
 
-AbstractAllocateMethod::ptr SharedData::GetAllocateMethod()
+AbstractAllocateMethod::ptr NormalSharedData::GetAllocateMethod()
 {
     return _allocateMethod;
 }
