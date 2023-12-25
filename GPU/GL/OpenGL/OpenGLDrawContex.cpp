@@ -556,7 +556,7 @@ bool OpenGLDrawContex::CopyFramebufferToMemory(FrameBuffer::ptr src, int channel
     return true;
 }
 
-bool OpenGLDrawContex::CopyTextureToMemory(const std::vector<Texture::ptr>& srcs, const std::vector<GLRect2D>& rects, SharedData::ptr picture)
+bool OpenGLDrawContex::CopyTextureToMemory(const std::vector<Texture::ptr>& srcs, const std::vector<GLRect2D>& rects, AbstractSharedData::ptr picture)
 {
     OpenGLRenderStep          step;
     OpenGLReadbackImageData   data;

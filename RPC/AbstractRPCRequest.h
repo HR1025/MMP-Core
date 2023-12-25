@@ -31,7 +31,7 @@ public:
      * @param[in]   from
      * @param[in]   to
      */
-    virtual bool Deserialize(SharedData::ptr from, Any& to) = 0;
+    virtual bool Deserialize(AbstractSharedData::ptr from, Any& to) = 0;
 };
 
 class FuncRPCRequest : public AbstractRPCRequest
@@ -39,7 +39,7 @@ class FuncRPCRequest : public AbstractRPCRequest
 public:
     explicit FuncRPCRequest(RPCDeserialize deserialize);
 public:
-    bool Deserialize(SharedData::ptr from, Any& to) override;
+    bool Deserialize(AbstractSharedData::ptr from, Any& to) override;
 private:
     RPCDeserialize _deserialize;
 };

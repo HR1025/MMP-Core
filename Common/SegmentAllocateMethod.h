@@ -42,9 +42,9 @@ public:
      * @param[in]   sharedData : 内存段
      * @note        offset >= 0 && length >=0 &&  (offset+length) <= sharedData->SetSize()
      */
-    void SetRange(uint64_t offset, uint64_t length, const SharedData::ptr& sharedData);
+    void SetRange(uint64_t offset, uint64_t length, const AbstractSharedData::ptr& sharedData);
 private:
-    SharedData::ptr _sharedData;
+    AbstractSharedData::ptr _sharedData;
     uint64_t        _offset;
     uint64_t        _length;
     std::string     _tag;

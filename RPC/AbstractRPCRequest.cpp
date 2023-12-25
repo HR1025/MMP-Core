@@ -10,7 +10,7 @@ FuncRPCRequest::FuncRPCRequest(RPCDeserialize deserialize)
     _deserialize = deserialize;
 }
 
-bool FuncRPCRequest::Deserialize(SharedData::ptr from, Any& to)
+bool FuncRPCRequest::Deserialize(AbstractSharedData::ptr from, Any& to)
 {
     return _deserialize(from, to);
 }

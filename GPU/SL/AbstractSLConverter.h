@@ -27,7 +27,7 @@ public:
      * @param[in]   stage
      * @param[in]   spriv : SPRI-V 标准的二进制文件
      */
-    virtual std::string Convert(const ShaderStage& stage, SharedData::ptr spriv) = 0;
+    virtual std::string Convert(const ShaderStage& stage, AbstractSharedData::ptr spriv) = 0;
 };
 
 }

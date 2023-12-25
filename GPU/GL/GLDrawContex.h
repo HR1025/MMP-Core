@@ -69,7 +69,7 @@ public:
                                  int channelBits, FBBlitFilter filter, const std::string& tag
                                 ) = 0;
     virtual bool CopyFramebufferToMemory(FrameBuffer::ptr src, int channelBits, int x, int y, int w, int h,  GLPixelData::ptr pixel) = 0;
-    virtual bool CopyTextureToMemory(const std::vector<Texture::ptr>& srcs, const std::vector<GLRect2D>& rects, SharedData::ptr picture) = 0;    
+    virtual bool CopyTextureToMemory(const std::vector<Texture::ptr>& srcs, const std::vector<GLRect2D>& rects, AbstractSharedData::ptr picture) = 0;    
 public: /* dynamic state */
     virtual void SetFrameBufferSize(int width, int height) = 0;
     virtual void SetScissorRect(int left, int top, int width, int height) = 0;

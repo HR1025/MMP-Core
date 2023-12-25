@@ -74,13 +74,13 @@ protected:
      * @param[in]  request : 请求数据
      * @param[in]  sync
      */
-    void DoRequest(Any user, const std::string& strategy, SharedData::ptr request, bool sync = false);
+    void DoRequest(Any user, const std::string& strategy, AbstractSharedData::ptr request, bool sync = false);
     /**
      * @brief      处理结果事件回调
      * @param[in]  user : 自定义数据
      * @param[in]  response : 处理结果
      */
-    virtual void OnResponse(Any user, SharedData::ptr response);
+    virtual void OnResponse(Any user, AbstractSharedData::ptr response);
     /**
      * @brief      未找到事件处理任务回调
      * @param[in]  user : 自定义数据

@@ -14,7 +14,7 @@
 
 #include "Common/Any.h"
 #include "Common/LogMessage.h"
-#include "Common/SharedData.h"
+#include "Common/AbstractSharedData.h"
 
 namespace Mmp
 {
@@ -28,8 +28,8 @@ namespace RPC
 #define RPC_LOG_ERROR   MMP_MLOG_ERROR("RPC")
 #define RPC_LOG_FATAL   MMP_MLOG_FATAL("RPC")
 
-using RPCDeserialize = std::function<bool(SharedData::ptr from, Any& to)>;
-using RPCSerialize   = std::function<bool(const Any& form, SharedData::ptr& to)>;
+using RPCDeserialize = std::function<bool(AbstractSharedData::ptr from, Any& to)>;
+using RPCSerialize   = std::function<bool(const Any& form, AbstractSharedData::ptr& to)>;
 using RPCProcess     = std::function<bool(const Any& request, Any& response)>;
 
 } // namespace RPC

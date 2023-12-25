@@ -39,7 +39,7 @@ void AbstractRPC::Unregister(AbstractRPCDispatcher::ptr dispatcher)
     _impl->_tasks.erase(dispatcher.get());
 }
 
-void AbstractRPC::DoRequest(Any user, const std::string& strategy, SharedData::ptr request, bool sync)
+void AbstractRPC::DoRequest(Any user, const std::string& strategy, AbstractSharedData::ptr request, bool sync)
 {
     auto task = std::make_shared<FuncTask>([this, user, strategy, request]
     {
@@ -59,7 +59,7 @@ void AbstractRPC::DoRequest(Any user, const std::string& strategy, SharedData::p
             {
                 Any _request;
                 Any _response;
-                SharedData::ptr response; 
+                AbstractSharedData::ptr response; 
                 if (!task.rpcRequest->Deserialize(request, _request))
                 {
                     break;
@@ -91,7 +91,7 @@ void AbstractRPC::DoRequest(Any user, const std::string& strategy, SharedData::p
     }
 }
 
-void AbstractRPC::OnResponse(Any /* user */, SharedData::ptr /* response */)
+void AbstractRPC::OnResponse(Any /* user */, AbstractSharedData::ptr /* response */)
 {
 
 }

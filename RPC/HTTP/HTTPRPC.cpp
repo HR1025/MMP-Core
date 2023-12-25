@@ -111,7 +111,7 @@ void HTTPRPC::Stop()
     _requestHandlerFactory.reset();
 }
 
-void HTTPRPC::OnResponse(Any user, SharedData::ptr response)
+void HTTPRPC::OnResponse(Any user, AbstractSharedData::ptr response)
 {
     Poco::Net::HTTPServerResponse& _response = *RefAnyCast<Poco::Net::HTTPServerResponse*>(user);
     if (response)
