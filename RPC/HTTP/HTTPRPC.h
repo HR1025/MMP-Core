@@ -21,7 +21,7 @@ public:
     bool Start() override;
     void Stop() override;
 public:
-    void OnResponse(Any user, SharedData::ptr response) override;
+    void OnResponse(Any user, AbstractSharedData::ptr response) override;
     void OnNotFoundDispatcher(Any user, const std::string& strategy) override;
 private:
     int64_t _port;

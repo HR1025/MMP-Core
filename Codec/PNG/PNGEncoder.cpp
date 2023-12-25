@@ -76,14 +76,14 @@ bool PngEncoder::Push(AbstractFrame::ptr frame)
         std::shared_ptr<PngAllocateMethod> allocateMethod = std::dynamic_pointer_cast<PngAllocateMethod>(AllocateMethodFactory::DefaultFactory().CreateAllocateMethod("LodePngAllocateMethod"));
         allocateMethod->data = compress;
         allocateMethod->size = size;
-        Pack::ptr pack = std::make_shared<Pack>(allocateMethod->size, allocateMethod);
+        NormalPack::ptr pack = std::make_shared<NormalPack>(allocateMethod->size, allocateMethod);
         _pack = pack;
         _onStatusChange(EncoderStatus::E_SUCESS, "");
     }
     return true;
 }
 
-bool PngEncoder::Pop(Pack::ptr& pack)
+bool PngEncoder::Pop(AbstractPack::ptr& pack)
 {
     std::lock_guard<std::recursive_mutex> lock(_mutex);
     if (!_pack)

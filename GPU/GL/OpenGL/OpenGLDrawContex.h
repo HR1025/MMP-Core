@@ -52,7 +52,7 @@ public:
                          int channelBits, FBBlitFilter filter, const std::string& tag
                         ) override;
     bool CopyFramebufferToMemory(FrameBuffer::ptr src, int channelBits, int x, int y, int w, int h,  GLPixelData::ptr pixel) override;
-    bool CopyTextureToMemory(const std::vector<Texture::ptr>& srcs, const std::vector<GLRect2D>& rects, SharedData::ptr picture) override;
+    bool CopyTextureToMemory(const std::vector<Texture::ptr>& srcs, const std::vector<GLRect2D>& rects, AbstractSharedData::ptr picture) override;
 public:
     void SetFrameBufferSize(int width, int height) override;
     void SetScissorRect(int left, int top, int width, int height) override;

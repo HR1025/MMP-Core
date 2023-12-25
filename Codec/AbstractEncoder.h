@@ -61,7 +61,7 @@ public:
     /**
      * @brief 获取解压数据
      */
-    virtual bool Pop(Pack::ptr& pack) = 0;
+    virtual bool Pop(AbstractPack::ptr& pack) = 0;
     /**
      * @brief 是否可提交
      */

@@ -790,7 +790,7 @@ bool D3D11DrawContex::CopyFramebufferToMemory(FrameBuffer::ptr src, int channelB
     return _syncDone;
 }
 
-bool D3D11DrawContex::CopyTextureToMemory(const std::vector<Texture::ptr>& srcs, const std::vector<GLRect2D>& rects, SharedData::ptr picture)
+bool D3D11DrawContex::CopyTextureToMemory(const std::vector<Texture::ptr>& srcs, const std::vector<GLRect2D>& rects, AbstractSharedData::ptr picture)
 {
     std::unique_lock<std::mutex> syncLock(_syncMtx);
     _syncDone = false;

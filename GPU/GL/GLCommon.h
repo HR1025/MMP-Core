@@ -13,7 +13,7 @@
 #include <iostream>
 
 #include "Common/LogMessage.h"
-#include "Common/SharedData.h"
+#include "Common/NormalSharedData.h"
 #include "GPU/SL/SLCommon.h"
 
 #define GL_LOG_TRACE   MMP_MLOG_TRACE("GPU")
@@ -380,7 +380,7 @@ void Uint8x4ToFloat4(uint32_t u, float f[4]);
 /**
  * @brief 原生数据格式定义
  */
-class RawData : public SharedData
+class RawData : public NormalSharedData
 {
 public:
 	using ptr = std::shared_ptr<RawData>;
@@ -391,7 +391,7 @@ public:
 /**
  * @brief       像素数据格式定义
  */
-class GLPixelData : public SharedData
+class GLPixelData : public NormalSharedData
 {
 public:
 	using ptr = std::shared_ptr<GLPixelData>;

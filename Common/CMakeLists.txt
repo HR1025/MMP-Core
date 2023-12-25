@@ -49,8 +49,15 @@ list(APPEND Common_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/StringAllocateMethod.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/AllocateMethodFactory.h
     ${CMAKE_CURRENT_SOURCE_DIR}/AllocateMethodFactory.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/SharedData.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/SharedData.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractSharedData.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractSharedData.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NormalSharedData.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/NormalSharedData.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SharedDataDecorator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SharedDataDecorator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractSharedDataPool.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SharedDataPool.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SharedDataPool.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PixelFormat.h
     ${CMAKE_CURRENT_SOURCE_DIR}/PixelFormat.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/MediaType.h
@@ -59,6 +66,12 @@ list(APPEND Common_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/PixelsInfo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/AbstractFrame.h
     ${CMAKE_CURRENT_SOURCE_DIR}/AbstractFrame.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NormalFrame.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/NormalFrame.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractPicture.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractPicture.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NormalPicture.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/NormalPicture.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Task.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Task.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/FuncTask.h

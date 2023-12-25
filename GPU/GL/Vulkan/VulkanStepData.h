@@ -65,7 +65,7 @@ struct VulkanReadbackImageData
     std::vector<VkImage>                        images;
     std::vector<GLRect2D>                       srcRects;
     int32_t                                     mipLevel;
-    SharedData::ptr                             picture;
+    AbstractSharedData::ptr                     picture;
 };
 
 } // namespace Mmp

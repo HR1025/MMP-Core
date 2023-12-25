@@ -17,7 +17,6 @@ namespace Mmp
 
 /**
  * @brief 抽象通用内存分配接口定义
- * @note  only used by SharedData
  */
 class AbstractAllocateMethod
 {
@@ -26,7 +25,7 @@ public:
 public:
     AbstractAllocateMethod() = default;
     virtual ~AbstractAllocateMethod() = default;
-protected:
+public:
     /**
      * @sa malloc
      */
@@ -43,8 +42,6 @@ protected:
      * @brief 标签
      */
     virtual const std::string& Tag() = 0;
-private:
-    friend class SharedData;
 };
 
 } // namespace Mmp

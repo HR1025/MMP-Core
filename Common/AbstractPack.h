@@ -1,9 +1,9 @@
 //
-// AbstractFrame.h
+// AbstractPack.h
 //
 // Library: Common
 // Package: Memory
-// Module:  Frame
+// Module:  Pack
 // 
 
 #pragma once
@@ -17,14 +17,14 @@ namespace Mmp
 {
 
 /**
- * @brief 通用原生数据帧定义
+ * @brief 通用压缩数据定义
  */
-class AbstractFrame : public AbstractSharedData
+class AbstractPack : public AbstractSharedData
 {
 public:
-    using ptr = std::shared_ptr<AbstractFrame>;
+    using ptr = std::shared_ptr<AbstractPack>;
 public:
-    explicit AbstractFrame();
+    explicit AbstractPack();
 public:
     Any sideData;
 };

@@ -7,7 +7,7 @@
 #include <Poco/Net/HTTPServerResponse.h>
 
 #include "Common/StringAllocateMethod.h"
-#include "Common/SharedData.h"
+#include "Common/NormalSharedData.h"
 
 namespace Mmp
 {
@@ -87,7 +87,7 @@ bool HTTPRPC::Start()
             Poco::StreamCopier::copyStream(request.stream(), ss);
             alloc->_data = ss.str();
         }
-        SharedData::ptr data = std::make_shared<SharedData>(alloc->_data.size(), alloc);
+        NormalSharedData::ptr data = std::make_shared<NormalSharedData>(alloc->_data.size(), alloc);
         this->DoRequest(&response, url, data, true);
     };
     
@@ -111,7 +111,7 @@ void HTTPRPC::Stop()
     _requestHandlerFactory.reset();
 }
 
-void HTTPRPC::OnResponse(Any user, SharedData::ptr response)
+void HTTPRPC::OnResponse(Any user, AbstractSharedData::ptr response)
 {
     Poco::Net::HTTPServerResponse& _response = *RefAnyCast<Poco::Net::HTTPServerResponse*>(user);
     if (response)

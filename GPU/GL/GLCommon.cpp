@@ -500,12 +500,12 @@ void Uint8x4ToFloat4(uint32_t u, float f[4])
 }
 
 RawData::RawData(size_t size, AbstractAllocateMethod::ptr allocateMethod)
-    : SharedData(size, allocateMethod)
+    : NormalSharedData(size, allocateMethod)
 {
 }
 
 GLPixelData::GLPixelData(uint32_t width, uint32_t height, uint32_t depth, DataFormat format, AbstractAllocateMethod::ptr allocateMethod)
-    : SharedData(0, allocateMethod)
+    : NormalSharedData(0, allocateMethod)
 {
     this->width = width;
     this->height = height;

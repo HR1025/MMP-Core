@@ -28,7 +28,7 @@ public:
 public:
     void SetParameter(Any parameter) override;
     Any GetParamter() override;
-    bool Push(Pack::ptr pack) override;
+    bool Push(AbstractPack::ptr pack) override;
     bool Pop(AbstractFrame::ptr& frame) override;
     bool CanPush() override;
     bool CanPop() override;
@@ -44,7 +44,7 @@ private:
     std::recursive_mutex  _mutex;
     PngDecoderParameter   _setting;
     std::atomic<bool>     _inDecoding;
-    PictureFrame::ptr     _picture;
+    NormalPicture::ptr    _picture;
     OnStatusChange        _onStatusChange;
 };
 } // namespace Codec

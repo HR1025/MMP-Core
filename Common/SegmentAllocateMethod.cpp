@@ -44,7 +44,7 @@ const std::string& SegmentAllocateMethod::Tag()
     return _tag;
 }
 
-void SegmentAllocateMethod::SetRange(uint64_t offset, uint64_t length, const SharedData::ptr& sharedData)
+void SegmentAllocateMethod::SetRange(uint64_t offset, uint64_t length, const AbstractSharedData::ptr& sharedData)
 {
     _offset     = offset;
     _length     = length;
