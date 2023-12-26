@@ -11,7 +11,7 @@ namespace Mmp
 
 SDLWindow::SDLWindow()
 {
-    _mode      = SDL_WINDOW_OPENGL;
+    _mode      = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
     _window    = nullptr;
     _contex    = nullptr;
     _major     = 0;
@@ -76,14 +76,33 @@ bool SDLWindow::Open()
         if (_type == APIType::OPENGL && ver.first != 4) continue;
         else if (_type == APIType::OPENGL_ES3 && ver.first != 3) continue;
 
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, ver.first);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, ver.second);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
+        if (!(SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, ver.first) == 0 &&
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, ver.second) == 0 && 
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE) == 0)
+        )
+        {
+            continue;
+        }
         // Hint : 尺寸暂时固定为1080P
         _window = SDL_CreateWindow("MMP", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, std::min(_displayWidth, (uint32_t)1920), std::min(_displayHeight, (uint32_t)1080), _mode);
-        if (_window)
+        if (!_window)
         {
+            continue;
+        }
+        // Hint : 通过创建 context 来确认 GL version 是否合适
+        _contex = SDL_GL_CreateContext(_window);
+        if (!_contex)
+        {
+            SDL_DestroyWindow(_window);
+            _window = nullptr;
+            WIN_LOG_WARN << "Create window fail, api type is: " << _type
+                << ", version is: (" << ver.first << "," << ver.second << "), try again...";
+            continue;
+        }
+        // if (_window && _contex)
+        {
+            SDL_GL_DeleteContext(_contex);
+            _contex = nullptr;
             _major = ver.first;
             _minor = ver.second;
             WIN_LOG_INFO << "Create window successfully, api type is: " << _type
@@ -122,6 +141,11 @@ bool SDLWindow::BindRenderThread(bool bind)
         if (_contex)
         {
             WIN_LOG_INFO << "Create GL Contex";
+        }
+        else
+        {
+            WIN_LOG_ERROR << "Create GL Context fail, error is: " << SDL_GetError();
+            assert(false);
         }
         return _contex ? true : false;
     }
