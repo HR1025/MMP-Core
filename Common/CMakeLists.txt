@@ -72,6 +72,10 @@ list(APPEND Common_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/AbstractPicture.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/NormalPicture.h
     ${CMAKE_CURRENT_SOURCE_DIR}/NormalPicture.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractPack.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractPack.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NormalPack.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/NormalPack.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Task.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Task.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/FuncTask.h
