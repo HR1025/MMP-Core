@@ -31,11 +31,7 @@ public:
     void*    GetData(uint64_t offset = 0) override;
     AbstractAllocateMethod::ptr GetAllocateMethod() override;
 private:
-    void*  _data;
-    size_t _capacity;
-    size_t _size;
-private:
-    AbstractAllocateMethod::ptr _allocateMethod;
+    AbstractFrame::ptr _data;
 };
 
 } // namespace Mmp
