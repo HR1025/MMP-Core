@@ -13,7 +13,8 @@ static OpenGLFeature gOpenGLFeature;
 static bool InitGlew()
 {
     GLenum err = glewInit();
-    if (err != GLEW_OK)
+    // FIXME : 某些平台下(WLS2 in Win11) glewInit 返回 GLEW_ERROR_NO_GLX_DISPLAY, 实际上能够正常工作
+    if (err != GLEW_OK && err != GLEW_ERROR_NO_GLX_DISPLAY)
     {
         return false;
     }
