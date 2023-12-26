@@ -20,7 +20,7 @@ namespace Mmp
 class AbstractPicture : public AbstractFrame
 {
 public:
-    using ptr = std::shared_ptr<AbstractPicture>();
+    using ptr = std::shared_ptr<AbstractPicture>;
 public:
     explicit AbstractPicture(PixelsInfo info);
 public:

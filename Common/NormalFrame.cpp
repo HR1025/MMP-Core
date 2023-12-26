@@ -1,77 +1,47 @@
 #include "NormalFrame.h"
 
-#include <cassert>
-#include <algorithm>
-
-#include "AllocateMethodFactory.h"
+#include "NormalSharedData.h"
 
 namespace Mmp
 {
 
 NormalFrame::NormalFrame(size_t size, AbstractAllocateMethod::ptr allocateMethod)
 {
-    _allocateMethod = allocateMethod ? allocateMethod : AllocateMethodFactory::DefaultFactory().CreateAllocateMethod("NormalAllocateMethod");
-    if (size != 0)
-    {
-        _data     = _allocateMethod->Malloc(size);
-        _capacity = size;
-        _size     = size;
-    }
-    else
-    {
-        _data     = nullptr;
-        _capacity = 0;
-        _size     = 0;
-    }
+    _data = std::make_shared<NormalFrame>(size, allocateMethod);
 }
 
 NormalFrame::~NormalFrame()
 {
-    // Hint : 内存回收完全交由 _allocateMethod 进行处理
 }
 
 void  NormalFrame::SetCapacity(size_t size)
 {
-    // (1) allloc memory
-    if (size !=0 && _capacity == 0 /* && size == 0 */)
-    {
-        assert(!_data);
-        _data = _allocateMethod->Malloc(size);
-        _capacity = size;
-    }
-    // (2) realloc
-    else if (size !=0 && _capacity != 0)
-    {
-        _data = _allocateMethod->Resize(_data, _capacity);
-        _capacity = size;
-        _size = std::min(_capacity, _size);
-    }
+    _data->SetCapacity(size);
 }
 
 size_t NormalFrame::GetCapcaity()
 {
-    return _capacity;
+    return _data->GetCapcaity();
 }
 
 void NormalFrame::SetSize(size_t size)
 {
-    assert(size <= _capacity);
-    _size = std::min(size, _capacity);
+    _data->SetSize(size);
 }
 
 size_t NormalFrame::GetSize()
 {
-    return _size;
+    return _data->GetSize();
 }
 
 void* NormalFrame::GetData(uint64_t offset)
 {
-    return offset < _capacity ? (uint8_t*)_allocateMethod->GetAddress(offset) : nullptr;
+    return _data->GetData(offset);
 }
 
 AbstractAllocateMethod::ptr NormalFrame::GetAllocateMethod()
 {
-    return _allocateMethod;
+    return _data->GetAllocateMethod();
 }
 
 } // namespace Mmp
