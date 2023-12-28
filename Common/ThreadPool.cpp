@@ -118,6 +118,7 @@ Task::ptr ThreadContext::Pop()
         return nullptr;
     }
     Task::ptr task = taskQueue.front();
+    taskQueue.pop_front();
     taskSize--;
     score -= TaskTypeToScore(task->GetType());
     return task;

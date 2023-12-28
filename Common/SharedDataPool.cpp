@@ -190,4 +190,57 @@ AbstractSharedData::ptr SharedDataPool::Request(uint32_t waitTimeMs)
     });
 }
 
+AbstractSharedData::ptr SharedDataPool::TryRequest()
+{
+    uint32_t slot = 0;
+    AbstractSharedData::ptr buffer = nullptr;
+    {
+        std::unique_lock<std::mutex> lock(_mtx);
+        if (_idles.empty())
+        {
+            return nullptr;
+        }
+        slot =  *_idles.begin();
+        _idles.erase(slot);
+        _availableSlot--;
+        _occupys.insert(slot);
+        _usedSlot++;
+    }
+    {
+        std::lock_guard<std::mutex> lock(_mtx);
+        if (_buffers.count(slot) == 0)
+        {
+            _buffers[slot] = std::make_shared<NormalSharedData>(_dataSize, _allocateMethod);
+            _allocatedSlot++;
+        }
+        buffer = _buffers[slot];
+    }
+    std::weak_ptr<SharedDataPool> weak = shared_from_this();
+    return std::make_shared<SharedDataAvailableListener>(buffer, slot, [weak, this](size_t slot) -> void
+    {
+        SharedDataPool::ptr strong = weak.lock();
+        if (!strong)
+        {
+            return;
+        }
+        std::lock_guard<std::mutex> lock(this->_mtx);
+        if (this->_occupys.count(slot))
+        {
+            this->_occupys.erase(slot);
+            this->_usedSlot--;
+        }
+        if (this->_allocatedSlot > this->_capacity) // Hint : 回收动态减少容量多余的部分
+        {
+            this->_buffers.erase(slot);
+            this->_allocatedSlot--;
+        }
+        else
+        {
+            this->_idles.insert(slot);
+            this->_availableSlot++;
+            this->_cond.notify_one();
+        }
+    });
+}
+
 }; // namespace Mmp
