@@ -36,6 +36,7 @@ public:
     size_t Available() override;
     size_t Allocated() override;
     AbstractSharedData::ptr Request(uint32_t waitTimeMs = 0) override;
+    AbstractSharedData::ptr TryRequest() override;
 private:
     std::mutex _mtx;
     std::condition_variable _cond;

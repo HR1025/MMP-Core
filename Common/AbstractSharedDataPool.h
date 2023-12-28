@@ -56,6 +56,10 @@ public:
      * @param[in]  waitTimeMs : 等待时间, waitTimeMs == 0 为阻塞等待
      */
     virtual AbstractSharedData::ptr Request(uint32_t waitTimeMs = 0) = 0;
+    /**
+     * @brief       尝试请求内存块
+     */
+    virtual AbstractSharedData::ptr TryRequest() = 0;
 };
 
 } // namespace Mmp
