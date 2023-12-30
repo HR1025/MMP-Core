@@ -10,6 +10,7 @@ set(MMP_OPENH264_ROOT ${MMP_CORE_PRO_TOP_DIR}/Extension/openh264)
 set(MMP_OPENH264_BASIC_INC)
 
 list(APPEND MMP_OPENH264_BASIC_INC
+    ${MMP_OPENH264_ROOT}/codec/api
     ${MMP_OPENH264_ROOT}/codec/api/wels
     ${MMP_OPENH264_ROOT}/codec/common/inc
 )
