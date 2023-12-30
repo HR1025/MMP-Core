@@ -1,7 +1,7 @@
 //
 // PngEncoder.h
 //
-// Library: Coedec
+// Library: Codec
 // Package: Encoder
 // Module:  PNG
 // 

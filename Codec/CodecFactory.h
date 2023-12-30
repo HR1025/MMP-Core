@@ -1,7 +1,7 @@
 //
 // CodecFactory.h
 //
-// Library: Coedec
+// Library: Codec
 // Package: Codec
 // Module:  Factory
 // 

@@ -1,7 +1,7 @@
 //
 // PNGDecorder.h
 //
-// Library: Coedec
+// Library: Codec
 // Package: Decorder
 // Module:  PNG
 // 

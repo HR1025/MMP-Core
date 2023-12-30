@@ -1,7 +1,7 @@
 //
 // AbstractDecorder.h
 //
-// Library: Coedec
+// Library: Codec
 // Package: Codec
 // Module:  Decoder
 // 

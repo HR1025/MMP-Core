@@ -3,9 +3,15 @@ cmake_minimum_required(VERSION 3.8)
 set(Codec_SRCS)
 set(Codec_INCS)
 set(Codec_LIB_DIR)
-set(Codec_LIBS)
+set(Codec_PRI_LIBS)
+set(Codec_PUB_LIBS)
 
 option(ENBALE_H26x_DEBUG "H26x 子仓库调试模式" OFF)
+
+list(APPEND Codec_PRI_LIBS
+    Poco::Foundation 
+    Mmp::Common
+)
 
 list(APPEND Codec_INCS
     ${MMP_CORE_PRO_TOP_DIR}
@@ -34,8 +40,8 @@ if (USE_VAAPI)
     message("  -- LIBVA LIBS : ${LIBVA_LIBRARIES}")
     list(APPEND Codec_INCS ${LIBVA_INCLUDE_DIRS})
     list(APPEND Codec_LIB_DIR ${LIBVA_LIBRARY_DIRS})
-    list(APPEND Codec_LIBS ${LIBVA_LIBRARIES})
-    list(APPEND Codec_LIBS va-drm)
+    list(APPEND Codec_PUB_LIBS ${LIBVA_LIBRARIES})
+    list(APPEND Codec_PUB_LIBS va-drm)
     ## drm
     if (NOT DRM_FOUND)
         find_package(PkgConfig REQUIRED)
@@ -47,7 +53,11 @@ if (USE_VAAPI)
     message("  -- DRM LIBS : ${DRM_LIBRARIES}")
     list(APPEND Codec_INCS ${DRM_INCLUDE_DIRS})
     list(APPEND Codec_LIB_DIR ${DRM_LIBRARY_DIRS})
-    list(APPEND Codec_LIBS ${DRM_LIBRARIES})
+    list(APPEND Codec_PUB_LIBS ${DRM_LIBRARIES})
+endif()
+
+if (USE_OPENH264)
+    list(APPEND Codec_PUB_LIBS Mmp::OpenH264)
 endif()
 
 # H264
@@ -71,6 +81,19 @@ list(APPEND Codec_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/H264/H265Deserialize.h
     ${CMAKE_CURRENT_SOURCE_DIR}/H264/H265Deserialize.cpp
 )
+
+# OpenH264
+if (USE_OPENH264)
+    list(APPEND Codec_SRCS
+        ${CMAKE_CURRENT_SOURCE_DIR}/openh264/OpenH264Common.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/openh264/OpenH264Common.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/openh264/OpenH264Util.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/openh264/OpenH264Util.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/openh264/OpenH264Decoder.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/openh264/OpenH264Decoder.cpp
+    )
+endif()
+
 
 # VAAPI
 if (USE_VAAPI)
@@ -106,14 +129,14 @@ list(APPEND Codec_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/PNG/PNGEncoder.h
     ${CMAKE_CURRENT_SOURCE_DIR}/PNG/PNGEncoder.cpp
 )
-list(APPEND Codec_LIBS
+list(APPEND Codec_PUB_LIBS
     lodepng
 )
 
-add_library(MMP_Codec OBJECT ${Codec_SRCS})
+add_library(MMP_Codec STATIC ${Codec_SRCS})
 add_library(Mmp::Codec ALIAS MMP_Codec)
 target_include_directories(MMP_Codec PUBLIC ${Codec_INCS})
-target_link_libraries(MMP_Codec PUBLIC ${Codec_LIBS} PRIVATE Poco::Foundation Mmp::Common) 
+target_link_libraries(MMP_Codec PUBLIC ${Codec_PUB_LIBS} PRIVATE ${Codec_PRI_LIBS}) 
 
 list(LENGTH Codec_LIB_DIR Codec_LIB_DIR_LEN)
 if (NOT(${Codec_LIB_DIR_LEN} EQUAL 0))
@@ -132,4 +155,7 @@ if (USE_VAAPI)
 endif()
 if (USE_X11)
     target_compile_definitions(MMP_Codec PRIVATE USE_X11)
+endif()
+if (USE_OPENH264)
+    target_compile_definitions (MMP_Codec PRIVATE USE_OPENH264)
 endif()
