@@ -26,6 +26,8 @@ list(APPEND Codec_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/CodecFactory.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CodecConfig.h
     ${CMAKE_CURRENT_SOURCE_DIR}/CodecConfig.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/StreamFrame.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/StreamFrame.cpp
 )
 
 # VAAPI

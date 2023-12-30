@@ -25,6 +25,8 @@
 #include "Common/NormalFrame.h"
 #include "Common/NormalPicture.h"
 
+#include "StreamFrame.h"
+
 #define CODEC_LOG_TRACE   MMP_MLOG_TRACE("CODEC")    
 #define CODEC_LOG_DEBUG   MMP_MLOG_DEBUG("CODEC")    
 #define CODEC_LOG_INFO    MMP_MLOG_INFO("CODEC")     

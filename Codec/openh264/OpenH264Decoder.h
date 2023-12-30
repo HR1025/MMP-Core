@@ -8,7 +8,11 @@
 
 #pragma once
 
+#include <mutex>
+#include <deque>
+
 #include "OpenH264Common.h"
+#include "Common/SharedDataPool.h"
 
 namespace Mmp
 {
@@ -37,7 +41,15 @@ public:
     void DelListener() override;
     const std::string& Description() override;
 private:
-    ISVCDecoder* _decoder;
+    std::mutex           _mtx;
+    ISVCDecoder*         _decoder;
+    SharedDataPool::ptr  _pool;
+    PixelsInfo           _info;
+    size_t               _bufSize;
+    OnStatusChange       _onStatusChange;
+private:
+    std::mutex                    _bufMtx;
+    std::deque<StreamFrame::ptr>  _buffers;
 };
 
 } // namespace Codec

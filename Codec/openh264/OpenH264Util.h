@@ -17,5 +17,7 @@ namespace Codec
 
 void OpenH264LogCallBack(void *ctx, int level, const char *msg);
 
+PixelFormat OpenH264PixFormatToMppPixFormat(EVideoFormatType type);
+
 } // namespace Codec
 } // namespace Mmp

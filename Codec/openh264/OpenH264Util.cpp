@@ -33,5 +33,23 @@ void OpenH264LogCallBack(void */* ctx */, int level, const char *msg)
     }
 }
 
+PixelFormat OpenH264PixFormatToMppPixFormat(EVideoFormatType type)
+{
+    switch (type)
+    {
+        case EVideoFormatType::videoFormatRGB: return PixelFormat::RGB888;
+        case EVideoFormatType::videoFormatRGBA: return PixelFormat::RGBA8888;
+        case EVideoFormatType::videoFormatRGB565: return PixelFormat::RGB565;
+        case EVideoFormatType::videoFormatBGR: return PixelFormat::BGR888;
+        case EVideoFormatType::videoFormatBGRA: return PixelFormat::BGRA8888;
+        case EVideoFormatType::videoFormatABGR: return PixelFormat::ABGR8888;
+        case EVideoFormatType::videoFormatARGB: return PixelFormat::ARGB8888;
+        case EVideoFormatType::videoFormatI420: return PixelFormat::YUV420P;
+        default:
+            assert(false);
+            return PixelFormat::NV12;
+    }
+}
+
 } // namespace Codec
 } // namespace Mmp

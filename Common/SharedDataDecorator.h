@@ -64,7 +64,7 @@ public:
     }
     void*    GetData(uint64_t offset = 0) override
     {
-        return _sharedData->GetData();
+        return _sharedData->GetData(offset);
     }
     AbstractAllocateMethod::ptr GetAllocateMethod() override
     {
