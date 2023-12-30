@@ -37,8 +37,6 @@ public:
     bool Pop(AbstractFrame::ptr& frame) override;
     bool CanPush() override;
     bool CanPop() override;
-    void SetListener(OnStatusChange onStatusChange) override;
-    void DelListener() override;
     const std::string& Description() override;
 private:
     std::mutex           _mtx;
@@ -46,7 +44,6 @@ private:
     SharedDataPool::ptr  _pool;
     PixelsInfo           _info;
     size_t               _bufSize;
-    OnStatusChange       _onStatusChange;
 private:
     std::mutex                    _bufMtx;
     std::deque<StreamFrame::ptr>  _buffers;

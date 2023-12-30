@@ -30,8 +30,6 @@ public:
     bool Pop(AbstractPack::ptr& pack) override;
     bool CanPush() override;
     bool CanPop() override;
-    void SetListener(OnStatusChange onStatusChange) override;
-    void DelListener() override;
     const std::string& Description() override;
 private:
     bool IsAllowEncodePixelFormat(PixelFormat format);
@@ -40,7 +38,6 @@ private:
     PNGEncoderParameter  _setting;
     std::atomic<bool>    _inEncoding;
     NormalPack::ptr      _pack;
-    OnStatusChange       _onStatusChange;
 };
 
 } // namespace Codec

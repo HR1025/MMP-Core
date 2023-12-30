@@ -50,16 +50,6 @@ bool VADecoder::CanPop()
     return false;
 }
 
-void VADecoder::SetListener(OnStatusChange onStatusChange)
-{
-    return;
-}
-
-void VADecoder::DelListener()
-{
-
-}
-
 const std::string& VADecoder::Description()
 {
     static std::string description = "VADecoder";

@@ -15,10 +15,6 @@ namespace Codec
 PngDecoder::PngDecoder()
 {
     _inDecoding = false;
-    _onStatusChange = [](DecoderStatus status, const std::string& info) -> void
-    {
-
-    };
 }
 
 PngDecoder::~PngDecoder()
@@ -39,10 +35,6 @@ void PngDecoder::SetParameter(Any parameter)
         assert(false);
         return;
     }
-    if (!IsAllowDecodePixelFormat(_setting))
-    {
-        _onStatusChange(DecoderStatus::DF_NOT_SUPPORT, "Only Support RGB pixel format");
-    }
 }
 
 Any PngDecoder::GetParamter()
@@ -57,13 +49,11 @@ bool PngDecoder::Push(AbstractPack::ptr pack)
     std::lock_guard<std::recursive_mutex> lock(_mutex);
     if (!IsAllowDecodePixelFormat(_setting))
     {
-        _onStatusChange(DecoderStatus::DF_NOT_SUPPORT, "Only Support RGB pixel format");
         return false;
     }
     if (_picture)
     {
         const std::string msg = "Push Pack but Frame not pop, discard frame";
-        _onStatusChange(DecoderStatus::DF_OVERSIZE, msg);
         CODEC_LOG_WARN << msg;
     }
     _inDecoding = true;
@@ -76,7 +66,6 @@ bool PngDecoder::Push(AbstractPack::ptr pack)
                             _setting.format == PixelFormat::RGB888 ? LodePNGColorType::LCT_RGB : LodePNGColorType::LCT_RGBA, 8);
         if (pixel == nullptr || error != 0)
         {
-            _onStatusChange(DecoderStatus::DF_UNKOWN, "LodePng Error");
             CODEC_LOG_WARN << "[lodepng] Unkown reason, decode fail";
             _inDecoding = false;
             return false;
@@ -86,7 +75,6 @@ bool PngDecoder::Push(AbstractPack::ptr pack)
         allocateMethod->size = width * height * (_setting.format == PixelFormat::RGB888 ? 3 : 4);
         NormalPicture::ptr picture = std::make_shared<NormalPicture>(PixelsInfo({(int32_t)width, (int32_t)height, 8, _setting.format}), allocateMethod);
         _picture = picture;
-        _onStatusChange(DecoderStatus::D_SUCESS, "");
     }
     _inDecoding = false;
     return true;
@@ -109,21 +97,6 @@ bool PngDecoder::CanPop()
 {
     std::lock_guard<std::recursive_mutex> lock(_mutex);
     return _picture ? true : false;
-}
-
-void PngDecoder::SetListener(OnStatusChange onStatusChange)
-{
-    std::lock_guard<std::recursive_mutex> lock(_mutex);
-    _onStatusChange = onStatusChange;
-}
-
-void PngDecoder::DelListener()
-{
-    std::lock_guard<std::recursive_mutex> lock(_mutex);
-    _onStatusChange = [](DecoderStatus status, const std::string& info) -> void
-    {
-
-    };
 }
 
 const std::string& PngDecoder::Description()

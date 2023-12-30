@@ -15,10 +15,6 @@ namespace Codec
 PngEncoder::PngEncoder()
 {
     _inEncoding = false;
-    _onStatusChange = [](EncoderStatus status, const std::string& info) -> void
-    {
-
-    };
 }
 
 PngEncoder::~PngEncoder()
@@ -42,20 +38,17 @@ bool PngEncoder::Push(AbstractFrame::ptr frame)
     if (_inEncoding) return false;
     if (frame->sideData.type() != typeid(PixelsInfo))
     {
-        _onStatusChange(EncoderStatus::EF_DATA_INVALID, "Missing PixelsInfo in frame");
         return false;
     }
     PixelsInfo picInfo = AnyCast<PixelsInfo>(frame->sideData);
     if (!IsAllowEncodePixelFormat(picInfo.format))
     {
-        _onStatusChange(EncoderStatus::EF_NOT_SUPPORT, "Only Support RGB pixel format");
         return false;
     }
     std::lock_guard<std::recursive_mutex> lock(_mutex);
     if (_pack)
     {
         const std::string msg = "Push Frame but Pack not pop, discard pack";
-        _onStatusChange(EncoderStatus::EF_OVERSIZE, msg);
         CODEC_LOG_WARN << msg;
     }
     _inEncoding = true;
@@ -68,7 +61,6 @@ bool PngEncoder::Push(AbstractFrame::ptr frame)
         );
         if (compress == nullptr || error != 0)
         {
-            _onStatusChange(EncoderStatus::EF_UNKOWN, "LodePng Error");
             CODEC_LOG_WARN << "[lodepng] Unkown reason, encode fail";
             _inEncoding = false;
             return false;
@@ -78,7 +70,6 @@ bool PngEncoder::Push(AbstractFrame::ptr frame)
         allocateMethod->size = size;
         NormalPack::ptr pack = std::make_shared<NormalPack>(allocateMethod->size, allocateMethod);
         _pack = pack;
-        _onStatusChange(EncoderStatus::E_SUCESS, "");
     }
     return true;
 }
@@ -107,21 +98,6 @@ bool PngEncoder::CanPop()
 {
     std::lock_guard<std::recursive_mutex> lock(_mutex);
     return _pack ? true : false;
-}
-
-void PngEncoder::SetListener(OnStatusChange onStatusChange)
-{
-    std::lock_guard<std::recursive_mutex> lock(_mutex);
-    _onStatusChange = onStatusChange;
-}
-
-void PngEncoder::DelListener()
-{
-    std::lock_guard<std::recursive_mutex> lock(_mutex);
-    _onStatusChange = [](EncoderStatus status, const std::string& info) -> void
-    {
-
-    };
 }
 
 const std::string& PngEncoder::Description()

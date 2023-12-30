@@ -18,10 +18,6 @@ OpenH264Decoder::OpenH264Decoder()
 
 void OpenH264Decoder::SetParameter(Any parameter)
 {
-    _onStatusChange = [](DecoderStatus status, const std::string& info) -> void
-    {
-
-    };
 }
 
 Any OpenH264Decoder::GetParamter()
@@ -95,7 +91,6 @@ bool OpenH264Decoder::Push(AbstractPack::ptr pack)
         if (state != DECODING_STATE::dsErrorFree)
         {
             OPENH264_LOG_WARN << "ISVCDecoder::DecodeFrameNoDelay fail";
-            _onStatusChange(DecoderStatus::DF_FAIL, "ISVCDecoder::DecodeFrameNoDelay fail");
             assert(false);
             return false;
         }
@@ -104,7 +99,6 @@ bool OpenH264Decoder::Push(AbstractPack::ptr pack)
             return true;
         }
     }
-    _onStatusChange(DecoderStatus::D_SUCESS, "");
 
     if (info.UsrData.sSystemBuffer.iWidth != this->_info.width 
         || info.UsrData.sSystemBuffer.iHeight != this->_info.height
@@ -121,10 +115,6 @@ bool OpenH264Decoder::Push(AbstractPack::ptr pack)
     }
     {
         AbstractSharedData::ptr frame = this->_pool->Request();
-        if (!frame)
-        {
-            _onStatusChange(DecoderStatus::DF_OVERSIZE, "ISVCDecoder::DecodeFrameNoDelay fail");
-        }
         // Y
         for (uint32_t i=0; i<_info.height; i++)
         {
@@ -182,21 +172,6 @@ bool OpenH264Decoder::CanPop()
 {
     std::lock_guard<std::mutex> lock(_mtx);
     return _buffers.empty();
-}
-
-void OpenH264Decoder::SetListener(OnStatusChange onStatusChange)
-{
-    std::lock_guard<std::mutex> lock(_mtx);
-    _onStatusChange = onStatusChange;
-}
-
-void OpenH264Decoder::DelListener()
-{
-    std::lock_guard<std::mutex> lock(_mtx);
-    _onStatusChange = [](DecoderStatus status, const std::string& info) -> void
-    {
-
-    };
 }
 
 const std::string& OpenH264Decoder::Description()
