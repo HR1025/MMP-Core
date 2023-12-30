@@ -23,6 +23,7 @@ public:
     using ptr = std::shared_ptr<AbstractPicture>;
 public:
     explicit AbstractPicture(PixelsInfo info);
+    AbstractPicture() = default;
 public:
     PixelsInfo info;
 };

@@ -27,6 +27,8 @@ namespace Mmp
 class TaskQueue
 {
 public:
+    using ptr = std::shared_ptr<TaskQueue>;
+public:
     TaskQueue();
     ~TaskQueue() = default;
 public:
