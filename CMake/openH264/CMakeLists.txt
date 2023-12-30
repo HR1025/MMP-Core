@@ -1,6 +1,8 @@
 project(mmp_openh264)
 
-# Hint : 根据 OpenH264 meson 编写
+# Hint : 
+#       1 - 根据 OpenH264 meson 编写
+#       2 - 当前只适配 x86_64 linux 下编译
 # Todo : 适配除 x86, arm64 以外的架构平台
 
 set(MMP_OPENH264_ROOT ${MMP_CORE_PRO_TOP_DIR}/Extension/openh264)
@@ -8,6 +10,7 @@ set(MMP_OPENH264_ROOT ${MMP_CORE_PRO_TOP_DIR}/Extension/openh264)
 set(MMP_OPENH264_BASIC_INC)
 
 list(APPEND MMP_OPENH264_BASIC_INC
+    ${MMP_OPENH264_ROOT}/codec/api
     ${MMP_OPENH264_ROOT}/codec/api/wels
     ${MMP_OPENH264_ROOT}/codec/common/inc
 )
@@ -37,6 +40,14 @@ elseif (${MMP_SYSTEM_DEVICE} MATCHES "ARM64")
     list(APPEND MMP_OPENH264_COMMON_SRCS
         ${MMP_OPENH264_ROOT}/codec/common/arm
     )
+endif()
+
+if (${MMP_SYSTEM_DEVICE} MATCHES "X86")
+    enable_language(ASM_NASM)
+    set(CMAKE_ASM_NASM_SOURCE_FILE_EXTENSIONS asm)
+    set(CMAKE_ASM_NASM_SOURCE_FILE_DEFINITION "-DUNIX64 -DHAVE_AVX2 -DUNIX64 -DHAVE_AVX2")
+    set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
+    set(CMAKE_ASM_NASM_COMPILE_OBJECT "<CMAKE_ASM_NASM_COMPILER> ${CMAKE_ASM_NASM_SOURCE_FILE_DEFINITION} -f ${CMAKE_ASM_NASM_OBJECT_FORMAT} <INCLUDES> -o <OBJECT> <SOURCE>")
 endif()
 
 ##########################################################################

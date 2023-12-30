@@ -9,6 +9,10 @@
     #include "VAAPI/VAH264Decoder.h"
 #endif /* USE_VAAPI */
 
+#if defined(USE_OPENH264)
+    #include "openh264/OpenH264Decoder.h"
+#endif /* USE_OPENH264 */
+
 namespace Mmp
 {
 namespace Codec
@@ -94,6 +98,9 @@ void DecoderFactory::RegisterBuiltins()
 #if defined(USE_VAAPI)
     _decoderFactory.registerClass("VAH264Decoder", new Instantiator<VAH264Decoder, AbstractDecoder>);
 #endif /* USE_VAAPI */
+#if defined(USE_OPENH264)
+    _decoderFactory.registerClass("OpenH264Decoder", new Instantiator<OpenH264Decoder, AbstractDecoder>);
+#endif /* USE_OPENH264 */
 }
 
 DecoderFactory& DecoderFactory::DefaultFactory()

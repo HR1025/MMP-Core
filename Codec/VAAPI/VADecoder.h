@@ -37,8 +37,6 @@ public:
     bool Pop(AbstractFrame::ptr& frame) override;
     bool CanPush() override;
     bool CanPop() override;
-    void SetListener(OnStatusChange onStatusChange) override;
-    void DelListener() override;
     const std::string& Description() override;
 public:
     bool VaInit();

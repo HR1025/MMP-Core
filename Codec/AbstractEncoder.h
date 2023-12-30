@@ -1,7 +1,7 @@
 //
 // AbstractEncoder.h
 //
-// Library: Coedec
+// Library: Codec
 // Package: Codec
 // Module:  Encoder
 // 
@@ -22,8 +22,6 @@ class AbstractEncoder
 {
 public:
     using ptr = std::shared_ptr<AbstractEncoder>;
-public:
-    using OnStatusChange = std::function<void(EncoderStatus status, const std::string& info)>;
 public:
     virtual ~AbstractEncoder() = default;
 public:
@@ -70,14 +68,6 @@ public:
      * @brief 是否可获取
      */
     virtual bool CanPop() = 0;
-    /**
-     * @brief 设置事件监听
-     */
-    virtual void SetListener(OnStatusChange onStatusChange) = 0;
-    /**
-     * @brief 取消事件监听
-     */
-    virtual void DelListener() = 0;
     /**
      * @brief 获取编码器描述信息
      */
