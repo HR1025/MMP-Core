@@ -45,6 +45,11 @@ namespace Codec
 enum class CodecType
 {
     PNG,
+    H264,
+    H265,
+    VP8,
+    VP9,
+    AV1
 };
 const std::string CodecTypeToStr(CodecType type);
 extern std::ostream& operator<<(std::ostream& os, CodecType type);

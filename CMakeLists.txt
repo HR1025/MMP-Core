@@ -30,6 +30,7 @@ option(USE_SPRIV_CROSS "Use to convert SPRIV to other shader languages" ON)
 option(USE_GBM         "EGL backend GBM"              OFF)
 option(USE_API_RPC     "RPC(Remote Process Communication) Interface (implement through HTTP OR WEBSOCKET etc.)" OFF)
 option(USE_OPENH264    "H264 Software Encoder/Decoder" OFF)
+option(USE_ROCKCHIP    "Rockchip hardware accelerate (VENC, VDEC, RGA etc.)" OFF)
 option(NOT_AUTO_EGL "Not auto append EGL dependence" OFF)
 #################################################################################################
 #                              Project Configuration(END)                                       #
@@ -82,6 +83,7 @@ message("  -- USE_VAAPI : ${USE_VAAPI}")
 message("  -- USE_SPRIV_CROSS : ${USE_SPRIV_CROSS}")
 message("  -- USE_API_RPC : ${USE_API_RPC}")
 message("  -- USE_OPENH264 : ${USE_OPENH264}")
+message("  -- USE_ROCKCHIP : ${USE_ROCKCHIP}")
 #################################################################################################
 #                                   Project Info(END)                                         #
 #################################################################################################
