@@ -144,6 +144,23 @@ if (USE_VAAPI)
     )
 endif()
 
+# Rockchip
+if (USE_ROCKCHIP)
+    list(APPEND Codec_INCS
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip
+    )
+    list(APPEND Codec_SRCS
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKCommon.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKCommon.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKUtil.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKUtil.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKTranslator.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKTranslator.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKDecoder.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKDecoder.cpp
+    )
+endif()
+
 # PNG
 list(APPEND Codec_INCS
     ${CMAKE_CURRENT_SOURCE_DIR}/PNG
