@@ -97,7 +97,24 @@ list(APPEND Common_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/NoticeCenter.cpp
 )
 
+set(USE_DRM FALSE)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(DRM REQUIRED libdrm)
+if (DRM_FOUND)
+    set(USE_DRM TRUE)
+    list(APPEND Codec_INCS ${DRM_INCLUDE_DIRS})
+    list(APPEND Codec_LIB_DIR ${DRM_LIBRARY_DIRS})
+    list(APPEND Codec_PUB_LIBS ${DRM_LIBRARIES})
+    list(APPEND Common_SRCS
+        ${CMAKE_CURRENT_SOURCE_DIR}/DrmAllocateMethod.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/DrmAllocateMethod.cpp
+    )
+endif()
+
 add_library(MMP_Common OBJECT ${Common_SRCS})
 add_library(Mmp::Common ALIAS MMP_Common)
 target_include_directories(MMP_Common PUBLIC ${Common_INCS})
 target_link_libraries(MMP_Common PRIVATE Poco::Foundation) 
+if (USE_DRM)
+    target_compile_definitions(MMP_Common PRIVATE USE_DRM)
+endif()
