@@ -27,5 +27,11 @@ const std::string CodecTypeToStr(CodecType type)
     }
 }
 
+std::ostream& operator<<(std::ostream& os, CodecType type)
+{
+    os << CodecTypeToStr(type);
+    return os;
+}
+
 } // namespace Codec
 } // namespace Mmp

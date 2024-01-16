@@ -158,6 +158,8 @@ if (USE_ROCKCHIP)
         ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKTranslator.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKDecoder.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKDecoder.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKH264Decoder.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKH264Decoder.cpp
     )
 endif()
 
