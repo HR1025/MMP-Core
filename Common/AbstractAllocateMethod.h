@@ -12,6 +12,8 @@
 #include <string>
 #include <memory>
 
+#include "Any.h"
+
 namespace Mmp
 {
 
@@ -38,6 +40,17 @@ public:
      * @brief 获取内存地址
      */
     virtual void* GetAddress(uint64_t offset) = 0;
+    /**
+     * @brief      设置原生属性
+     * @param[in]  key
+     * @param[in]  value
+     */
+    virtual bool Set(const std::string& key, const Any& value);
+    /**
+     * @brief      获取原生属性
+     * @param[in]  key
+     */
+    virtual Any  Get(const std::string& key);
     /**
      * @brief 标签
      */
