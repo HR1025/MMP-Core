@@ -56,5 +56,14 @@ std::string VAProfileToStr(VAProfile profile)
     }
 }
 
+VaDecodePictureContext::ptr VaH264DecodePictureContextToVaDecodePictureContext(VaH264DecodePictureContext::ptr context)
+{
+    VaDecodePictureContext::ptr _context = std::make_shared<VaDecodePictureContext>();
+    _context->surface = context->surface;
+    _context->paramBuffers = context->paramBuffers;
+    _context->sliceBuffers = context->sliceBuffers;
+    return _context;
+}
+
 } // namespace Codec
 } // namespace Mmp

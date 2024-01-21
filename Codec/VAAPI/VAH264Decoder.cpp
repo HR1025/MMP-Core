@@ -11,30 +11,29 @@ namespace Mmp
 namespace Codec
 {
 
-static void FillVAPictureH264(VaDecodePictureContext::ptr context, VAPictureH264& vaPicture)
+static void FillVAPictureH264(VaH264DecodePictureContext::ptr context, VAPictureH264& vaPicture)
 {
-    H264PictureContext::ptr picContext = AnyCast<H264PictureContext::ptr>(context->opaque);
     vaPicture.picture_id = context->surface;
-    vaPicture.frame_idx = picContext->referenceFlag & H264PictureContext::used_for_long_term_reference ? picContext->long_term_frame_idx : picContext->FrameNum;
+    vaPicture.frame_idx = context->referenceFlag & H264PictureContext::used_for_long_term_reference ? context->long_term_frame_idx : context->FrameNum;
     vaPicture.flags = 0;
-    if (picContext->bottom_field_flag == 1)
+    if (context->bottom_field_flag == 1)
     {
         vaPicture.flags |= VA_PICTURE_H264_BOTTOM_FIELD;
     }
-    else if (/* picContext->bottom_field_flag == 0 && */ picContext->field_pic_flag == 1)
+    else if (/* context->bottom_field_flag == 0 && */ context->field_pic_flag == 1)
     {
         vaPicture.flags |= VA_PICTURE_H264_TOP_FIELD;
     }
-    if (picContext->referenceFlag & H264PictureContext::used_for_long_term_reference)
+    if (context->referenceFlag & H264PictureContext::used_for_long_term_reference)
     {
         vaPicture.flags |= VA_PICTURE_H264_LONG_TERM_REFERENCE;
     }
-    else if (picContext->referenceFlag & H264PictureContext::used_for_short_term_reference)
+    else if (context->referenceFlag & H264PictureContext::used_for_short_term_reference)
     {
         vaPicture.flags |= VA_PICTURE_H264_SHORT_TERM_REFERENCE;
     }
-    vaPicture.TopFieldOrderCnt = picContext->TopFieldOrderCnt;
-    vaPicture.BottomFieldOrderCnt = picContext->BottomFieldOrderCnt;
+    vaPicture.TopFieldOrderCnt = context->TopFieldOrderCnt;
+    vaPicture.BottomFieldOrderCnt = context->BottomFieldOrderCnt;
 }
 
 class H264StartFrameContext
@@ -109,7 +108,7 @@ VAH264Decoder::VAH264Decoder()
 {
     _deserialize = std::make_shared<H264Deserialize>();
     _deserializeContext = std::make_shared<H264ContextSyntax>();
-    _sliceDecoding = std::make_shared<H264SliceDecodingProcess>();
+    _sliceDecoding = std::make_shared<VaH264SliceDecodingProcess>();
 }
 
 bool VAH264Decoder::Push(AbstractPack::ptr pack)
@@ -193,14 +192,13 @@ void VAH264Decoder::StartFrame(const Any& context)
     }
 
     {
-        VaDecodePictureContext::ptr picture = std::make_shared<VaDecodePictureContext>();
-        if (!InitH264Picture(picture, _sliceDecoding->GetCurrentPictureContext()))
+        VaH264DecodePictureContext::ptr picture = std::dynamic_pointer_cast<VaH264DecodePictureContext>(_sliceDecoding->GetCurrentPictureContext());
+        if (!InitH264Picture(picture))
         {
             VAAPI_LOG_ERROR << "InitH264Picture fail";
             assert(false);
         }
         _curPic = picture;
-        _pictures[_sliceDecoding->GetCurrentPictureContext()->id] = picture;
     }
     // VAPictureParameterBufferType
     {
@@ -261,17 +259,19 @@ void VAH264Decoder::StartFrame(const Any& context)
             size_t index = 0;
             for (auto picture : __pictures)
             {
-                if (picture->referenceFlag & H264PictureContext::used_for_short_term_reference && _sliceDecoding->GetCurrentPictureContext()->id != picture->id)
+                VaH264DecodePictureContext::ptr vaPicture = std::dynamic_pointer_cast<VaH264DecodePictureContext>(picture);
+                if (vaPicture->referenceFlag & H264PictureContext::used_for_short_term_reference && _sliceDecoding->GetCurrentPictureContext()->id != vaPicture->id)
                 {
-                    FillVAPictureH264(_pictures[picture->id], picParam.ReferenceFrames[index]);
+                    FillVAPictureH264(vaPicture, picParam.ReferenceFrames[index]);
                     index++;
                 }
             }
             for (auto picture : __pictures)
             {
-                if (picture->referenceFlag & H264PictureContext::used_for_long_term_reference && _sliceDecoding->GetCurrentPictureContext()->id != picture->id)
+                VaH264DecodePictureContext::ptr vaPicture = std::dynamic_pointer_cast<VaH264DecodePictureContext>(picture);
+                if (vaPicture->referenceFlag & H264PictureContext::used_for_long_term_reference && _sliceDecoding->GetCurrentPictureContext()->id != vaPicture->id)
                 {
-                    FillVAPictureH264(_pictures[picture->id], picParam.ReferenceFrames[index]);
+                    FillVAPictureH264(vaPicture, picParam.ReferenceFrames[index]);
                     index++;
                 }
             }
@@ -342,15 +342,9 @@ void VAH264Decoder::DecodedBitStream(const Any& context)
         size_t index = 0;
         for (const auto& RefPic : RefPicList0)
         {
-            for (auto& picture : _pictures)
-            {
-                H264PictureContext::ptr base = RefAnyCast<H264PictureContext::ptr>(picture.second->opaque);
-                if (base->PicNum == RefPic->PicNum || base->LongTermFrameIdx == RefPic->LongTermFrameIdx)
-                {
-                    FillVAPictureH264(picture.second, sliceParameter.RefPicList0[index]);
-                    index++;
-                }
-            }
+            VaH264DecodePictureContext::ptr vaRefPic = std::dynamic_pointer_cast<VaH264DecodePictureContext>(RefPic);
+            FillVAPictureH264(vaRefPic, sliceParameter.RefPicList0[index]);
+            index++;
         }
     }
     // VASliceParameterBufferH264::RefPicList1
@@ -366,15 +360,9 @@ void VAH264Decoder::DecodedBitStream(const Any& context)
         size_t index = 0;
         for (const auto& RefPic : RefPicList1)
         {
-            for (auto& picture : _pictures)
-            {
-                H264PictureContext::ptr base = RefAnyCast<H264PictureContext::ptr>(picture.second->opaque);
-                if (base->PicNum == RefPic->PicNum || base->LongTermFrameIdx == RefPic->LongTermFrameIdx)
-                {
-                    FillVAPictureH264(picture.second, sliceParameter.RefPicList1[index]);
-                    index++;
-                }
-            }
+            VaH264DecodePictureContext::ptr vaRefPic = std::dynamic_pointer_cast<VaH264DecodePictureContext>(RefPic);
+            FillVAPictureH264(vaRefPic, sliceParameter.RefPicList1[index]);
+            index++;
         }
     }
     if (slice->pwt)
@@ -439,13 +427,12 @@ void VAH264Decoder::DecodedBitStream(const Any& context)
 
 void VAH264Decoder::EndFrame(const Any& context)
 {
-    CommitVaDecodeCommand(_curPic);
+    VaH264DecodePictureContextToVaDecodePictureContext(_curPic);
     _curPic = nullptr;
 }
 
-bool VAH264Decoder::InitH264Picture(VaDecodePictureContext::ptr picture, H264PictureContext::ptr base)
+bool VAH264Decoder::InitH264Picture(VaH264DecodePictureContext::ptr picture)
 {
-    picture->opaque = base;
     VaDecoderParams decoderParam = GetDecoderParams();
     std::vector<VASurfaceAttrib> attributes;
     if (decoderParam.flag & MmpVaDecodeFlag::MMP_VA_DECODE_FALG_NEED_MEMORY_TYPE)
@@ -466,7 +453,7 @@ bool VAH264Decoder::InitH264Picture(VaDecodePictureContext::ptr picture, H264Pic
     return picture->surface != VA_INVALID_ID ? true : false;
 }
 
-void VAH264Decoder::UninitH264Picture(VaDecodePictureContext::ptr picture)
+void VAH264Decoder::UninitH264Picture(VaH264DecodePictureContext::ptr picture)
 {
     if (picture->surface != VA_INVALID_ID)
     {

@@ -70,7 +70,6 @@ public:
 public:
     VaDecodePictureContext();
 public:
-    Any                      opaque;
     VASurfaceID              surface;
     std::vector<VABufferID>  paramBuffers;
     std::vector<VABufferID>  sliceBuffers;
