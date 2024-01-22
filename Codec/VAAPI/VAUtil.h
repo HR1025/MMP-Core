@@ -18,7 +18,5 @@ namespace Codec
 
 std::string VAProfileToStr(VAProfile profile);
 
-VaDecodePictureContext::ptr VaH264DecodePictureContextToVaDecodePictureContext(VaH264DecodePictureContext::ptr context);
-
 } // namespace Codec
 } // namespace Mmp

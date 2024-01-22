@@ -9,6 +9,7 @@
 #pragma once
 
 #include "VADecoder.h"
+#include "VADecodePictureContext.h"
 #include "H264/H264Deserialize.h"
 #include "H264/H264SliceDecodingProcess.h"
 
@@ -17,21 +18,13 @@ namespace Mmp
 namespace Codec
 {
 
-class VaH264DecodePictureContext : public H264PictureContext
+class VAH264DecodePictureContext : public H264PictureContext, public VADecodePictureContext
 {
 public:
-    using ptr = std::shared_ptr<VaH264DecodePictureContext>;
+    using ptr = std::shared_ptr<VAH264DecodePictureContext>;
 public:
-    VaH264DecodePictureContext();
-    ~VaH264DecodePictureContext();
-public:
-    void SetVADecoder(VADecoder::ptr decoder);
-public:
-    VASurfaceID              surface;
-    std::vector<VABufferID>  paramBuffers;
-    std::vector<VABufferID>  sliceBuffers;
-private:
-    VADecoder::ptr           _decoder;
+    VAH264DecodePictureContext();
+    ~VAH264DecodePictureContext();
 };
 
 class VaH264SliceDecodingProcess : public H264SliceDecodingProcess

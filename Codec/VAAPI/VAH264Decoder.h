@@ -31,14 +31,14 @@ private:
     void DecodedBitStream(const Any& context) override;
     void EndFrame(const Any& context) override;
 private:
-    bool InitH264Picture(VaH264DecodePictureContext::ptr picture);
+    bool InitH264Picture(VAH264DecodePictureContext::ptr picture);
 private:
     void OnVaDecoderParamsChange(const VaDecoderParams& oldValue, const VaDecoderParams& newValue) override;
 private:
     H264Deserialize::ptr                                            _deserialize;
     H264ContextSyntax::ptr                                          _deserializeContext;
     H264SliceDecodingProcess::ptr                                   _sliceDecoding;
-    VaH264DecodePictureContext::ptr                                 _curPic;
+    VAH264DecodePictureContext::ptr                                 _curPic;
 };
 
 } // namespace Codec

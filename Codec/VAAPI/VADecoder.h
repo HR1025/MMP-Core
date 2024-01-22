@@ -59,7 +59,7 @@ public: /* Common Interface */
     void DestroyVaSliceParamBuffer(VABufferID buffer);
     VABufferID CreateVaSliceDataBuffer(void* data, size_t size);
     void DestroyVaSliceDataBuffer(VABufferID buffer);
-    bool CommitVaDecodeCommand(VaDecodePictureContext::ptr picContext);
+    bool CommitVaDecodeCommand(VADecodePictureContext::ptr picContext);
 protected: /* Hook */
     virtual void StartFrame(const Any& context) = 0;
     virtual void DecodedBitStream(const Any& context) = 0;
