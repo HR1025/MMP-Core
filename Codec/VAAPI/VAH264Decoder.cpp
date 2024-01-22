@@ -1,6 +1,7 @@
 #include "VAH264Decoder.h"
 
 #include <cassert>
+#include <memory>
 #include <memory.h>
 
 #include "VAUtil.h"
@@ -13,6 +14,7 @@ namespace Codec
 
 static void FillVAPictureH264(VaH264DecodePictureContext::ptr context, VAPictureH264& vaPicture)
 {
+    assert(context->surface != VA_INVALID_ID);
     vaPicture.picture_id = context->surface;
     vaPicture.frame_idx = context->referenceFlag & H264PictureContext::used_for_long_term_reference ? context->long_term_frame_idx : context->FrameNum;
     vaPicture.flags = 0;
@@ -370,7 +372,7 @@ void VAH264Decoder::DecodedBitStream(const Any& context)
         H264PredictionWeightTableSyntax::ptr pwt = slice->pwt;
         for (uint32_t i=0; i<=slice->num_ref_idx_l0_active_minus1; i++)
         {
-            if (pwt->luma_weight_l0_flag[i])
+            if (!pwt->luma_weight_l0_flag.empty() && pwt->luma_weight_l0_flag[i])
             {
                 sliceParameter.luma_weight_l0[i] = pwt->luma_weight_l0[i];
                 sliceParameter.luma_offset_l0[i] = pwt->luma_offset_l0[i];
@@ -382,7 +384,7 @@ void VAH264Decoder::DecodedBitStream(const Any& context)
             }
             for (size_t j=0; j<2; j++)
             {
-                if (pwt->chroma_weight_l0_flag[i])
+                if (!pwt->chroma_weight_l0_flag.empty() && pwt->chroma_weight_l0_flag[i])
                 {
                     sliceParameter.chroma_weight_l0[i][j] = pwt->chroma_weight_l0[i][j];
                     sliceParameter.chroma_offset_l0[i][j] = pwt->chroma_offset_l0[i][j];
@@ -427,12 +429,13 @@ void VAH264Decoder::DecodedBitStream(const Any& context)
 
 void VAH264Decoder::EndFrame(const Any& context)
 {
-    VaH264DecodePictureContextToVaDecodePictureContext(_curPic);
+    CommitVaDecodeCommand(VaH264DecodePictureContextToVaDecodePictureContext(_curPic));
     _curPic = nullptr;
 }
 
 bool VAH264Decoder::InitH264Picture(VaH264DecodePictureContext::ptr picture)
 {
+    picture->SetVADecoder(shared_from_this());
     VaDecoderParams decoderParam = GetDecoderParams();
     std::vector<VASurfaceAttrib> attributes;
     if (decoderParam.flag & MmpVaDecodeFlag::MMP_VA_DECODE_FALG_NEED_MEMORY_TYPE)
@@ -451,15 +454,6 @@ bool VAH264Decoder::InitH264Picture(VaH264DecodePictureContext::ptr picture)
     }
     picture->surface = CreateVaSurface(attributes);
     return picture->surface != VA_INVALID_ID ? true : false;
-}
-
-void VAH264Decoder::UninitH264Picture(VaH264DecodePictureContext::ptr picture)
-{
-    if (picture->surface != VA_INVALID_ID)
-    {
-        DestroyVaSurface(picture->surface);
-        picture->surface = VA_INVALID_ID;
-    }
 }
 
 void VAH264Decoder::OnVaDecoderParamsChange(const VaDecoderParams& oldValue, const VaDecoderParams& newValue)

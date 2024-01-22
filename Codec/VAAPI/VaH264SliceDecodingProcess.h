@@ -25,9 +25,13 @@ public:
     VaH264DecodePictureContext();
     ~VaH264DecodePictureContext();
 public:
+    void SetVADecoder(VADecoder::ptr decoder);
+public:
     VASurfaceID              surface;
     std::vector<VABufferID>  paramBuffers;
     std::vector<VABufferID>  sliceBuffers;
+private:
+    VADecoder::ptr           _decoder;
 };
 
 class VaH264SliceDecodingProcess : public H264SliceDecodingProcess

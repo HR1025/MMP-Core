@@ -32,7 +32,6 @@ private:
     void EndFrame(const Any& context) override;
 private:
     bool InitH264Picture(VaH264DecodePictureContext::ptr picture);
-    void UninitH264Picture(VaH264DecodePictureContext::ptr picture);
 private:
     void OnVaDecoderParamsChange(const VaDecoderParams& oldValue, const VaDecoderParams& newValue) override;
 private:
