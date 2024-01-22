@@ -5,6 +5,10 @@
 #include "NormalAllocateMethod.h"
 #include "SegmentAllocateMethod.h"
 
+#if defined(USE_DRM)
+#include "DrmAllocateMethod.h"
+#endif /* USE_DRM */
+
 namespace Mmp
 {
 
@@ -40,6 +44,9 @@ void AllocateMethodFactory::RegisterBuiltins()
     std::lock_guard<std::mutex> lock(_mutex);
     _allocateMethodFactory.registerClass("NormalAllocateMethod", new Instantiator<NormalAllocateMethod, AbstractAllocateMethod>);
     _allocateMethodFactory.registerClass("SegmentAllocateMethod", new Instantiator<SegmentAllocateMethod, AbstractAllocateMethod>);
+#if defined(USE_DRM)
+    _allocateMethodFactory.registerClass("DrmAllocateMethod", new Instantiator<DrmAllocateMethod, AbstractAllocateMethod>);
+#endif /* USE_DRM */
 }
 
 AllocateMethodFactory& AllocateMethodFactory::DefaultFactory()
