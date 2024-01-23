@@ -113,6 +113,10 @@ if (USE_VAAPI)
         ${CMAKE_CURRENT_SOURCE_DIR}/VAAPI/VATranslator.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/VAAPI/VADecoder.h
         ${CMAKE_CURRENT_SOURCE_DIR}/VAAPI/VADecoder.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/VAAPI/VADecodePictureContext.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/VAAPI/VADecodePictureContext.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/VAAPI/VaH264SliceDecodingProcess.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/VAAPI/VaH264SliceDecodingProcess.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/VAAPI/VAH264Decoder.h
         ${CMAKE_CURRENT_SOURCE_DIR}/VAAPI/VAH264Decoder.cpp
     )

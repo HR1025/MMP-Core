@@ -23,10 +23,10 @@ namespace Codec
 /**
  * @todo 支持以及完善缓冲区机制 
  */
-class VADecoder : public AbstractDecoder
+class VADecoder : public AbstractDecoder, public std::enable_shared_from_this<VADecoder>
 {
 public:
-    using ptr = std::shared_ptr<VADecoder>();
+    using ptr = std::shared_ptr<VADecoder>;
 public:
     VADecoder();
     virtual ~VADecoder() = default;
@@ -46,7 +46,7 @@ private:
     void DestroyContext();
     bool CreateVaConfig();
     void DestroyVaConfig();
-protected: /* Common Interface */
+public: /* Common Interface */
     VaDecoderParams GetDecoderParams();
     void SetDecoderParams(const VaDecoderParams& param);
     VASurfaceID CreateVaSurface(const std::vector<VASurfaceAttrib>& attributes);
@@ -59,7 +59,7 @@ protected: /* Common Interface */
     void DestroyVaSliceParamBuffer(VABufferID buffer);
     VABufferID CreateVaSliceDataBuffer(void* data, size_t size);
     void DestroyVaSliceDataBuffer(VABufferID buffer);
-    bool CommitVaDecodeCommand(VaDecodePictureContext::ptr picContext);
+    bool CommitVaDecodeCommand(VADecodePictureContext::ptr picContext);
 protected: /* Hook */
     virtual void StartFrame(const Any& context) = 0;
     virtual void DecodedBitStream(const Any& context) = 0;

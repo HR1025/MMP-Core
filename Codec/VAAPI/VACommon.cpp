@@ -29,10 +29,5 @@ bool operator!=(const VaDecoderParams& left, const VaDecoderParams& right)
     return !(left == right);
 }
 
-VaDecodePictureContext::VaDecodePictureContext()
-{
-    surface = VA_INVALID_ID;
-}
-
 } // namespace Codec
 } // namespace Mmp
