@@ -26,6 +26,7 @@
 #include "Codec/AbstractEncoder.h"
 #include "Codec/AbstractDecorder.h"
 #include "Codec/H264/H264Common.h"
+#include "VAAPI/VADecodePictureContext.h"
 
 #define VAAPI_LOG_TRACE   MMP_MLOG_TRACE("VAAPI")    
 #define VAAPI_LOG_DEBUG   MMP_MLOG_DEBUG("VAAPI")    
@@ -62,19 +63,6 @@ public:
 };
 bool operator==(const VaDecoderParams& left, const VaDecoderParams& right);
 bool operator!=(const VaDecoderParams& left, const VaDecoderParams& right);
-
-class VaDecodePictureContext
-{
-public:
-    using ptr = std::shared_ptr<VaDecodePictureContext>;
-public:
-    VaDecodePictureContext();
-public:
-    Any                      opaque;
-    VASurfaceID              surface;
-    std::vector<VABufferID>  paramBuffers;
-    std::vector<VABufferID>  sliceBuffers;
-};
 
 } // namespace Codec
 } // namespace Mmp

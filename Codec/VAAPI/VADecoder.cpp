@@ -277,7 +277,7 @@ void VADecoder::DestroyVaSliceDataBuffer(VABufferID buffer)
     vaDestroyBuffer(_display, buffer);
 }
 
-bool VADecoder::CommitVaDecodeCommand(VaDecodePictureContext::ptr picContext)
+bool VADecoder::CommitVaDecodeCommand(VADecodePictureContext::ptr picContext)
 {
     if (vaBeginPicture(_display, _context, picContext->surface) != VA_STATUS_SUCCESS)
     {

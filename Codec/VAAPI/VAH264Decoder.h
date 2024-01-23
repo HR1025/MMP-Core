@@ -10,7 +10,7 @@
 
 #include "VADecoder.h"
 #include "H264/H264Deserialize.h"
-#include "H264/H264SliceDecodingProcess.h"
+#include "VaH264SliceDecodingProcess.h"
 
 namespace Mmp
 {
@@ -31,16 +31,14 @@ private:
     void DecodedBitStream(const Any& context) override;
     void EndFrame(const Any& context) override;
 private:
-    bool InitH264Picture(VaDecodePictureContext::ptr picture, H264PictureContext::ptr base);
-    void UninitH264Picture(VaDecodePictureContext::ptr picture);
+    bool InitH264Picture(VAH264DecodePictureContext::ptr picture);
 private:
     void OnVaDecoderParamsChange(const VaDecoderParams& oldValue, const VaDecoderParams& newValue) override;
 private:
-    H264Deserialize::ptr                                        _deserialize;
-    H264ContextSyntax::ptr                                      _deserializeContext;
-    H264SliceDecodingProcess::ptr                               _sliceDecoding;
-    std::map<uint64_t /* id */, VaDecodePictureContext::ptr>    _pictures;
-    VaDecodePictureContext::ptr                                 _curPic;
+    H264Deserialize::ptr                                            _deserialize;
+    H264ContextSyntax::ptr                                          _deserializeContext;
+    H264SliceDecodingProcess::ptr                                   _sliceDecoding;
+    VAH264DecodePictureContext::ptr                                 _curPic;
 };
 
 } // namespace Codec

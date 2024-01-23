@@ -9,6 +9,7 @@
 #pragma once
 
 #include "VACommon.h"
+#include "VaH264SliceDecodingProcess.h"
 
 namespace Mmp
 {
