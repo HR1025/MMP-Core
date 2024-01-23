@@ -41,6 +41,8 @@ list(APPEND Common_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/Any.h
     ${CMAKE_CURRENT_SOURCE_DIR}/AbstractAllocateMethod.h
     ${CMAKE_CURRENT_SOURCE_DIR}/AbstractAllocateMethod.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractDeviceAllocateMethod.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractDeviceAllocateMethod.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/NormalAllocateMethod.h
     ${CMAKE_CURRENT_SOURCE_DIR}/NormalAllocateMethod.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ImmutableVectorAllocateMethod.h

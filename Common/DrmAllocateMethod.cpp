@@ -1,8 +1,10 @@
 #include "DrmAllocateMethod.h"
 
+#include <cstddef>
 #include <cstdint>
 #include <cassert>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <fcntl.h>
 #include <unistd.h>
@@ -198,6 +200,7 @@ DrmAllocateMethod::~DrmAllocateMethod()
 
 void* DrmAllocateMethod::Malloc(size_t size)
 {
+    std::lock_guard<std::mutex> lock(_mtx);
     if (!DrmDevice::DrmDeviceSingleton()->Allocate(size, _fd))
     {
         assert(false);
@@ -220,6 +223,7 @@ END:
 
 void* DrmAllocateMethod::Resize(void* data, size_t size)
 {
+    std::lock_guard<std::mutex> lock(_mtx);
     // Hint : not support resize
     assert(false);
     return _data;
@@ -227,6 +231,7 @@ void* DrmAllocateMethod::Resize(void* data, size_t size)
 
 void* DrmAllocateMethod::GetAddress(uint64_t offset)
 {
+    std::lock_guard<std::mutex> lock(_mtx);
     return _data ? (uint8_t*)_data + offset : nullptr;
 }
 
@@ -234,6 +239,31 @@ const std::string& DrmAllocateMethod::Tag()
 {
     static const std::string tag = "DrmAllocateMethod";
     return tag;
+}
+
+void DrmAllocateMethod::Sync()
+{
+    std::lock_guard<std::mutex> lock(_mtx);
+}
+
+void DrmAllocateMethod::Map()
+{
+    std::lock_guard<std::mutex> lock(_mtx);
+    if (!_data)
+    {
+        _data = DrmDevice::DrmDeviceSingleton()->Map(_fd, _len);
+        assert(_data);
+    }
+}
+
+void DrmAllocateMethod::UnMap()
+{
+    std::lock_guard<std::mutex> lock(_mtx);
+    if (_data)
+    {
+        DrmDevice::DrmDeviceSingleton()->UnMap(_data, _len);
+        _data = nullptr;
+    }
 }
 
 } // namespace Mmp
