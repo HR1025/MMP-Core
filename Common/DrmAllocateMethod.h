@@ -13,7 +13,9 @@
 
 #pragma once
 
-#include "AbstractAllocateMethod.h"
+#include <mutex>
+
+#include "AbstractDeviceAllocateMethod.h"
 
 namespace Mmp
 {
@@ -21,7 +23,7 @@ namespace Mmp
 /**
  * @brief 基于 DRM 内存分配实现, 用于图形相关
  */
-class DrmAllocateMethod : public AbstractAllocateMethod
+class DrmAllocateMethod : public AbstractDeviceAllocateMethod
 {
 public:
     using ptr = std::shared_ptr<DrmAllocateMethod>;
@@ -33,7 +35,12 @@ public:
     void* Resize(void* data, size_t size) override;
     void* GetAddress(uint64_t offset) override;
     const std::string& Tag() override;
+public:
+    void Sync() override;
+    void Map() override;
+    void UnMap() override;
 private:
+    std::mutex _mtx;
     int _fd;
     void* _data;
     size_t _len;
