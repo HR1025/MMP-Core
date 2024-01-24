@@ -15,6 +15,10 @@ VADecodePictureContext::VADecodePictureContext()
 void VADecodePictureContext::SetVADecoder(std::shared_ptr<VADecoder> decoder)
 {
     _decoder = decoder;
+    if (_decoder)
+    {
+        _decoder->AddReference();
+    }
 }
 
 VADecodePictureContext::~VADecodePictureContext()
@@ -31,6 +35,7 @@ VADecodePictureContext::~VADecodePictureContext()
         {
             _decoder->DestroyVaSliceDataBuffer(sliceBuffer);
         }
+        _decoder->DelReference();
     }
 }
 
