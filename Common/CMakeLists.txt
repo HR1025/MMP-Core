@@ -98,6 +98,8 @@ list(APPEND Common_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/EventTag.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/NoticeCenter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/NoticeCenter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CommonGeometry.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/CommonGeometry.cpp
 )
 
 set(USE_DRM FALSE)
