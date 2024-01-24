@@ -1,5 +1,5 @@
 //
-// Instantiator.h
+// Common.h
 //
 // Library: Common
 // Package: Common
