@@ -18,6 +18,30 @@ VADecoder::VADecoder()
     _config = VA_INVALID_ID;
     _display = nullptr;
     _isInited = false;
+    _reference = 0;
+    _needUninit = false;
+}
+
+bool VADecoder::Init()
+{
+    assert(_needUninit == false);
+    // Hint : nothing to do
+    //        LIBVA 的初始化需要知道一些配置参数, 这些参数从码流中获取, 故在解析码流获取这些参数时在进行初始化
+    // See also : VADecoder::VaInit
+    return false;
+}
+
+void VADecoder::Uninit()
+{
+    // Hint : VADecoder 创建出来的一些资源会直接导出给外部使用, 通过 shared_ptr 的形式,
+    //        故 VADecoder 并不持有这些资源文件, 但这些资源文件释放时需要使用到 VADecoder 相关的上下文,
+    //        所以 VADecoder 需要延迟释放, 保证其他资源已完成释放, 再 Uninit 自己
+    _needUninit = true;
+    if (_reference == 0)
+    {
+        VaInit();
+        _needUninit = false;
+    }
 }
 
 void VADecoder::SetParameter(Any parameter)
@@ -98,6 +122,20 @@ void VADecoder::VaUninit()
     VADevice::Instance()->Destroy();
     _display = nullptr;
     _isInited = false;
+}
+
+void VADecoder::AddReference()
+{
+    _reference++;
+}
+
+void VADecoder::DelReference()
+{
+    _reference--;
+    if (_reference == 0 && _needUninit)
+    {
+        Uninit();
+    }
 }
 
 bool VADecoder::CreateContext()

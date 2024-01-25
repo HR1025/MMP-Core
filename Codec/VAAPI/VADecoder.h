@@ -9,6 +9,7 @@
 #pragma once
 
 #include <mutex>
+#include <atomic>
 #include <vector>
 #include <memory>
 
@@ -31,6 +32,8 @@ public:
     VADecoder();
     virtual ~VADecoder() = default;
 public:
+    bool Init() override;
+    void Uninit() override;
     void SetParameter(Any parameter) override;
     Any GetParamter() override;
     bool Push(AbstractPack::ptr pack) override;
@@ -39,8 +42,22 @@ public:
     bool CanPop() override;
     const std::string& Description() override;
 public:
+    /**
+     * @brief 初始化 VADecoder 
+     */
     bool VaInit();
+    /**
+     * @brief 重置  VADecoder
+     */
     void VaUninit();
+    /**
+     * @brief 增加引用计数 
+     */
+    void AddReference();
+    /**
+     * @brief 减少引用计数 
+     */
+    void DelReference();
 private:
     bool CreateContext();
     void DestroyContext();
@@ -72,7 +89,9 @@ protected:
     VAContextID    _context;
     VAConfigID     _config;
 private:
-    VaDecoderParams  _params;
+    std::atomic<bool>    _needUninit;
+    std::atomic<int64_t> _reference;
+    VaDecoderParams      _params;
 };
 
 } // namespace Codec

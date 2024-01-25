@@ -155,6 +155,7 @@ void VADevice::Destroy()
     std::lock_guard<std::mutex> lock(_mtx);
     if (_reference > 1)
     {
+        _reference--;
         return;
     }
     vaTerminate(_display);
