@@ -37,6 +37,7 @@ public:
 public:
     VADisplay GetDisplay();
     std::set<VAProfile> GetSupportProfiles();
+    bool GetImageFormat(PixelFormat format, VAImageFormat& imageFormat);
 public:
     void RegisterNoticeCenter();
     void UnRegisterNoticeCenter();

@@ -26,6 +26,7 @@ public:
     ~VADecodePictureContext();
 public:
     void SetDecoderContext(std::shared_ptr<VADecoderContext> context);
+    std::shared_ptr<VADecoderContext> GetDecoderContext();
 public:
     VASurfaceID                 surface;
     std::vector<VABufferID>     paramBuffers;

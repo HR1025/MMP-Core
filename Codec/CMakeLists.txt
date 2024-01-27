@@ -117,6 +117,8 @@ if (USE_VAAPI)
         ${CMAKE_CURRENT_SOURCE_DIR}/VAAPI/VADecoderContext.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/VAAPI/VADecodePictureContext.h
         ${CMAKE_CURRENT_SOURCE_DIR}/VAAPI/VADecodePictureContext.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/VAAPI/VASurfaceAllocateMethod.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/VAAPI/VASurfaceAllocateMethod.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/VAAPI/VaH264SliceDecodingProcess.h
         ${CMAKE_CURRENT_SOURCE_DIR}/VAAPI/VaH264SliceDecodingProcess.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/VAAPI/VAH264Decoder.h

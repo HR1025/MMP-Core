@@ -42,8 +42,15 @@ bool VADecoderContext::Init()
     {
         goto END2;
     }
+    if (!VADevice::Instance()->GetImageFormat(_params.format, _imageFormat))
+    {
+        VAAPI_LOG_ERROR << "VADevice::Instance GetImageFormat fail";
+        goto END3;
+    }
     _isInited = true;
     return true;
+END3:
+    DestroyVaConfig();
 END2:
     DestroyVaConfig();
 END1:
@@ -86,25 +93,6 @@ VASurfaceID VADecoderContext::CreateVaSurface(const std::vector<VASurfaceAttrib>
     return surfaceId;
 END:
     return VA_INVALID_ID;
-}
-
-VAImage VADecoderContext::CreateVaImage(VASurfaceID surfaceId)
-{
-    VAImage image = {};
-    if (vaDeriveImage(_display, surfaceId, &image) != VA_STATUS_SUCCESS)
-    {
-        VAAPI_LOG_ERROR << "vaDeriveImage fail";
-        assert(false);
-    }
-    return image;
-}
-
-void VADecoderContext::DestroyVaImage(VAImage image)
-{
-    if (image.image_id != VA_INVALID_ID)
-    {
-        vaDestroyImage(_display, image.image_id);
-    }
 }
 
 void VADecoderContext::DestroyVaSurface(VASurfaceID surfaceId)
@@ -189,6 +177,71 @@ END1:
     vaEndPicture(_display, _context);
 END:
     return false;
+}
+
+bool VADecoderContext::SyncVaSurface(VASurfaceID surfaceId)
+{
+    if (VA_INVALID_ID != surfaceId)
+    {
+        if (vaSyncSurface(_display, surfaceId))
+        {
+            VAAPI_LOG_WARN << "vaSyncSurface fail";
+            assert(false);
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+    else
+    {
+        assert(false);
+        return false;
+    }
+}
+
+bool VADecoderContext::MapVaSurface(VASurfaceID surfaceId, VAImage& image, void*& address)
+{
+    if (vaCreateImage(_display,  &_imageFormat, _params.width, _params.height, &image))
+    {
+        VAAPI_LOG_WARN << "vaCreateImage fail";
+        assert(false);
+        goto END;
+    }
+    if (vaGetImage(_display, surfaceId, 0, 0, _params.width, _params.height, image.image_id))
+    {
+        VAAPI_LOG_WARN << "vaGetImage fail";
+        assert(false);
+        goto END1;
+    }
+    if (vaMapBuffer(_display, image.buf, &address))
+    {
+        VAAPI_LOG_WARN << "vaMapBuffer fail";
+        assert(false);
+        goto END1;
+    }
+    return true;
+END1:
+    vaDestroyImage(_display, image.image_id);
+END:
+    image.image_id = VA_INVALID_ID;
+    address = nullptr;
+    return false;
+}
+
+void VADecoderContext::UnMapVaSurface(const VAImage& image)
+{
+    if (vaUnmapBuffer(_display, image.buf))
+    {
+        VAAPI_LOG_WARN << "vaUnmapBuffer fail";
+        assert(false);
+    }
+    if (vaDestroyImage(_display, image.image_id))
+    {
+        VAAPI_LOG_WARN << "vaDestroyImage fail";
+        assert(false);
+    }
 }
 
 bool VADecoderContext::CreateContext()

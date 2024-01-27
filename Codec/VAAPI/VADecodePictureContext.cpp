@@ -17,6 +17,11 @@ void VADecodePictureContext::SetDecoderContext(VADecoderContext::ptr context)
     _context = context;
 }
 
+VADecoderContext::ptr VADecodePictureContext::GetDecoderContext()
+{
+    return _context;
+}
+
 VADecodePictureContext::~VADecodePictureContext()
 {
     assert(_context);

@@ -14,7 +14,8 @@ namespace Codec
 
 VADecoder::VADecoder()
 {
-
+    // TODO : 支持可配置
+    _frameBufSize = 5;
 }
 
 bool VADecoder::Init()
@@ -37,24 +38,32 @@ Any VADecoder::GetParamter()
     return Any();
 }
 
-bool VADecoder::Push(AbstractPack::ptr pack)
-{
-    return false;
-}
-
 bool VADecoder::Pop(AbstractFrame::ptr& frame)
 {
-    return false;
+    std::lock_guard<std::mutex> lock(_frameBufMtx);
+    if (!_frameBufs.empty())
+    {
+        frame = _frameBufs.front();
+        _frameBufs.pop_front();
+        return true;
+    }
+    else
+    {
+        frame = nullptr;
+        return false;
+    }
 }
 
 bool VADecoder::CanPush()
 {
-    return false;
+    std::lock_guard<std::mutex> lock(_frameBufMtx);
+    return _frameBufs.size() <= _frameBufSize;
 }
 
 bool VADecoder::CanPop() 
 {
-    return false;
+    std::lock_guard<std::mutex> lock(_frameBufMtx);
+    return !_frameBufs.empty();
 }
 
 const std::string& VADecoder::Description()
@@ -92,6 +101,12 @@ void VADecoder::SetDecoderParams(const VaDecoderParams& param)
         } 
         OnVaDecoderParamsChange(oldParams, param);
     }
+}
+
+void VADecoder::PushFrame(StreamFrame::ptr frame)
+{
+    std::lock_guard<std::mutex> lock(_frameBufMtx);
+    _frameBufs.push_back(frame);
 }
 
 VADecoderContext::ptr VADecoder::GetContext()

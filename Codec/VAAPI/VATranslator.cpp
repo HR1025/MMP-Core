@@ -62,5 +62,18 @@ uint32_t PixelFormatToVaRTFormat(PixelFormat format)
     }
 }
 
+uint32_t PixelFormatToVaFourcc(PixelFormat format)
+{
+    switch (format)
+    {
+        case PixelFormat::YUV420P: return VA_FOURCC_I420;
+        case PixelFormat::NV12: return VA_FOURCC_NV12;
+        case PixelFormat::RGBA8888: return VA_FOURCC_RGBA;
+        default:
+            assert(false);
+            return 0;
+    }
+}
+
 } // namespace Codec
 } // namespace Mmp
