@@ -12,30 +12,25 @@ VADecodePictureContext::VADecodePictureContext()
     surface = VA_INVALID_ID;
 }
 
-void VADecodePictureContext::SetVADecoder(std::shared_ptr<VADecoder> decoder)
+void VADecodePictureContext::SetDecoderContext(VADecoderContext::ptr context)
 {
-    _decoder = decoder;
-    if (_decoder)
-    {
-        _decoder->AddReference();
-    }
+    _context = context;
 }
 
 VADecodePictureContext::~VADecodePictureContext()
 {
-    assert(_decoder);
-    if (_decoder)
+    assert(_context);
+    if (_context)
     {
-        _decoder->DestroyVaSurface(surface);
+        _context->DestroyVaSurface(surface);
         for (const auto& paramBuffer : paramBuffers)
         {
-            _decoder->DestroyVaParamBuffer(paramBuffer);
+            _context->DestroyVaParamBuffer(paramBuffer);
         }
         for (const auto& sliceBuffer : sliceBuffers)
         {
-            _decoder->DestroyVaSliceDataBuffer(sliceBuffer);
+            _context->DestroyVaSliceDataBuffer(sliceBuffer);
         }
-        _decoder->DelReference();
     }
 }
 
