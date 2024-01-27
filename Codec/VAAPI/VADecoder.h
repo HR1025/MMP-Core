@@ -15,6 +15,7 @@
 
 #include "VACommon.h"
 #include "VADevice.h"
+#include "VADecoderContext.h"
 
 namespace Mmp
 {
@@ -50,48 +51,19 @@ public:
      * @brief 重置  VADecoder
      */
     void VaUninit();
-    /**
-     * @brief 增加引用计数 
-     */
-    void AddReference();
-    /**
-     * @brief 减少引用计数 
-     */
-    void DelReference();
-private:
-    bool CreateContext();
-    void DestroyContext();
-    bool CreateVaConfig();
-    void DestroyVaConfig();
-public: /* Common Interface */
+protected: /* Common Interface */
     VaDecoderParams GetDecoderParams();
     void SetDecoderParams(const VaDecoderParams& param);
-    VASurfaceID CreateVaSurface(const std::vector<VASurfaceAttrib>& attributes);
-    void DestroyVaSurface(VASurfaceID surfaceId);
-    VAImage CreateVaImage(VASurfaceID surfaceId);
-    void DestroyVaImage(VAImage image);
-    VABufferID CreateVaParamBuffer(VABufferType type, void* data, size_t size);
-    void DestroyVaParamBuffer(VABufferID buffer);
-    VABufferID CreateVaSliceParamBuffer(VABufferType type, void* data, size_t size);
-    void DestroyVaSliceParamBuffer(VABufferID buffer);
-    VABufferID CreateVaSliceDataBuffer(void* data, size_t size);
-    void DestroyVaSliceDataBuffer(VABufferID buffer);
-    bool CommitVaDecodeCommand(VADecodePictureContext::ptr picContext);
+    VADecoderContext::ptr GetContext();
 protected: /* Hook */
     virtual void StartFrame(const Any& context) = 0;
     virtual void DecodedBitStream(const Any& context) = 0;
     virtual void EndFrame(const Any& context) = 0;
 protected:  /* Event */
     virtual void OnVaDecoderParamsChange(const VaDecoderParams& oldValue, const VaDecoderParams& newValue);
-protected:
-    bool           _isInited;
-    VADisplay      _display;
-    VAContextID    _context;
-    VAConfigID     _config;
 private:
-    std::atomic<bool>    _needUninit;
-    std::atomic<int64_t> _reference;
-    VaDecoderParams      _params;
+    VADecoderContext::ptr _contex;
+    VaDecoderParams       _params;
 };
 
 } // namespace Codec
