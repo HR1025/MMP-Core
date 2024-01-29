@@ -17,6 +17,7 @@
 #include <Poco/SortedDirectoryIterator.h>
 
 #include "VAUtil.h"
+#include "VATranslator.h"
 
 namespace Mmp
 {
@@ -200,6 +201,22 @@ std::set<VAProfile> VADevice::GetSupportProfiles()
         }
     }
     return _supportProfiles;
+}
+
+bool VADevice::GetImageFormat(PixelFormat format, VAImageFormat& imageFormat)
+{
+    std::lock_guard<std::mutex> lock(_mtx);
+    bool found = false;
+    for (const auto& __imageFormat : _imageFormats)
+    {
+        if (__imageFormat.fourcc == PixelFormatToVaFourcc(format))
+        {
+            imageFormat = __imageFormat;
+            found = true;
+            break;
+        }
+    }
+    return found;
 }
 
 void VADevice::RegisterNoticeCenter()

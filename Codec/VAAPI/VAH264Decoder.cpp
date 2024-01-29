@@ -6,6 +6,7 @@
 
 #include "VAUtil.h"
 #include "VATranslator.h"
+#include "VASurfaceAllocateMethod.h"
 
 namespace Mmp
 {
@@ -138,6 +139,10 @@ bool VAH264Decoder::Push(AbstractPack::ptr pack)
     {
         return true;
     }
+    if (!CanPush())
+    {
+        return false;
+    }
     {
         H264StartFrameContext context;
         context.nal = nal;
@@ -164,7 +169,6 @@ bool VAH264Decoder::Push(AbstractPack::ptr pack)
         H264EndFrameContext context;
         EndFrame(context);
     }
-
     return true;
 }
 
@@ -344,6 +348,10 @@ void VAH264Decoder::DecodedBitStream(const Any& context)
         size_t index = 0;
         for (const auto& RefPic : RefPicList0)
         {
+            if (!RefPic)
+            {
+                continue;
+            }
             VAH264DecodePictureContext::ptr vaRefPic = std::dynamic_pointer_cast<VAH264DecodePictureContext>(RefPic);
             FillVAPictureH264(vaRefPic, sliceParameter.RefPicList0[index]);
             index++;
@@ -362,6 +370,10 @@ void VAH264Decoder::DecodedBitStream(const Any& context)
         size_t index = 0;
         for (const auto& RefPic : RefPicList1)
         {
+            if (!RefPic)
+            {
+                continue;
+            }
             VAH264DecodePictureContext::ptr vaRefPic = std::dynamic_pointer_cast<VAH264DecodePictureContext>(RefPic);
             FillVAPictureH264(vaRefPic, sliceParameter.RefPicList1[index]);
             index++;
@@ -430,6 +442,19 @@ void VAH264Decoder::DecodedBitStream(const Any& context)
 void VAH264Decoder::EndFrame(const Any& context)
 {
     GetContext()->CommitVaDecodeCommand(_curPic);
+    {
+        VASurfaceAllocateMethod::ptr allocate = std::make_shared<VASurfaceAllocateMethod>(_curPic);
+        PixelsInfo info = {};
+        {
+            const VaDecoderParams& decoderParams = GetDecoderParams();
+            info.bitdepth = 8;
+            info.width = decoderParams.width;
+            info.height = decoderParams.height;
+            info.format = decoderParams.format;
+        }
+        StreamFrame::ptr frame = std::make_shared<StreamFrame>(info, allocate);
+        PushFrame(frame);
+    }
     _curPic = nullptr;
 }
 

@@ -30,8 +30,6 @@ public:
 public:
     VASurfaceID CreateVaSurface(const std::vector<VASurfaceAttrib>& attributes);
     void DestroyVaSurface(VASurfaceID surfaceId);
-    VAImage CreateVaImage(VASurfaceID surfaceId);
-    void DestroyVaImage(VAImage image);
     VABufferID CreateVaParamBuffer(VABufferType type, void* data, size_t size);
     void DestroyVaParamBuffer(VABufferID buffer);
     VABufferID CreateVaSliceParamBuffer(VABufferType type, void* data, size_t size);
@@ -39,6 +37,9 @@ public:
     VABufferID CreateVaSliceDataBuffer(void* data, size_t size);
     void DestroyVaSliceDataBuffer(VABufferID buffer);
     bool CommitVaDecodeCommand(VADecodePictureContext::ptr picContext);
+    bool SyncVaSurface(VASurfaceID surfaceId);
+    bool MapVaSurface(VASurfaceID surfaceId, VAImage& image, void*& address);
+    void UnMapVaSurface(const VAImage& image);
 private:
     bool CreateContext();
     void DestroyContext();
@@ -48,6 +49,7 @@ private:
     void Uninit();
 private:
     bool            _isInited;
+    VAImageFormat   _imageFormat;
     VaDecoderParams _params;
     VADisplay       _display;
     VAContextID     _context;

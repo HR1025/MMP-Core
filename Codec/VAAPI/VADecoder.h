@@ -9,6 +9,7 @@
 #pragma once
 
 #include <mutex>
+#include <deque>
 #include <atomic>
 #include <vector>
 #include <memory>
@@ -37,7 +38,6 @@ public:
     void Uninit() override;
     void SetParameter(Any parameter) override;
     Any GetParamter() override;
-    bool Push(AbstractPack::ptr pack) override;
     bool Pop(AbstractFrame::ptr& frame) override;
     bool CanPush() override;
     bool CanPop() override;
@@ -54,6 +54,7 @@ public:
 protected: /* Common Interface */
     VaDecoderParams GetDecoderParams();
     void SetDecoderParams(const VaDecoderParams& param);
+    void PushFrame(StreamFrame::ptr frame);
     VADecoderContext::ptr GetContext();
 protected: /* Hook */
     virtual void StartFrame(const Any& context) = 0;
@@ -64,6 +65,10 @@ protected:  /* Event */
 private:
     VADecoderContext::ptr _contex;
     VaDecoderParams       _params;
+private:
+    std::mutex _frameBufMtx;
+    size_t _frameBufSize;
+    std::deque<StreamFrame::ptr> _frameBufs;
 };
 
 } // namespace Codec
