@@ -52,7 +52,7 @@ bool VADecoderContext::Init()
 END3:
     DestroyVaConfig();
 END2:
-    DestroyVaConfig();
+    DestroyContext();
 END1:
     _display = nullptr;
     VADevice::Instance()->Destroy();
@@ -76,6 +76,7 @@ void VADecoderContext::Uninit()
 
 VASurfaceID VADecoderContext::CreateVaSurface(const std::vector<VASurfaceAttrib>& attributes)
 {
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
     uint32_t rtFormat = PixelFormatToVaRTFormat(_params.format);
     VASurfaceID surfaceId = VA_INVALID_ID;
     if (rtFormat == 0)
@@ -84,9 +85,9 @@ VASurfaceID VADecoderContext::CreateVaSurface(const std::vector<VASurfaceAttrib>
         assert(false);
         goto END;
     }
-    if (vaCreateSurfaces(_display, rtFormat, _params.width, _params.height, &surfaceId, 1, const_cast<VASurfaceAttrib*>(attributes.data()), attributes.size()) != VA_STATUS_SUCCESS)
+    if (VA_OP_FAIL(vaCreateSurfaces(_display, rtFormat, _params.width, _params.height, &surfaceId, 1, const_cast<VASurfaceAttrib*>(attributes.data()), attributes.size())))
     {
-        VAAPI_LOG_ERROR << "vaCreateSurfaces fail";
+        VAAPI_LOG_ERROR << "vaCreateSurfaces fail, status is: " << VAStatusToStr(vaStatus);
         assert(false);
         goto END;
     }
@@ -97,18 +98,24 @@ END:
 
 void VADecoderContext::DestroyVaSurface(VASurfaceID surfaceId)
 {
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
     if (surfaceId != VA_INVALID_ID)
     {
-        vaDestroySurfaces(_display, &surfaceId, 1);
+        if (VA_OP_FAIL(vaDestroySurfaces(_display, &surfaceId, 1)))
+        {
+            VAAPI_LOG_ERROR << "vaDestroySurfaces fail, status is: " << VAStatusToStr(vaStatus);
+            assert(false);
+        }
     }
 }
 
 VABufferID VADecoderContext::CreateVaParamBuffer(VABufferType type, void* data, size_t size)
 {
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
     VABufferID buffer = VA_INVALID_ID;
-    if (vaCreateBuffer(_display, _context, type, size, 1, (void*)data, &buffer) != VA_STATUS_SUCCESS)
+    if (VA_OP_FAIL(vaCreateBuffer(_display, _context, type, size, 1, (void*)data, &buffer)))
     {
-        VAAPI_LOG_ERROR << "vaCreateBuffer fail";
+        VAAPI_LOG_ERROR << "vaCreateBuffer fail, status is: " << VAStatusToStr(vaStatus);
         assert(false);
     }
     return buffer;
@@ -116,15 +123,21 @@ VABufferID VADecoderContext::CreateVaParamBuffer(VABufferType type, void* data, 
 
 void VADecoderContext::DestroyVaParamBuffer(VABufferID buffer)
 {
-    vaDestroyBuffer(_display, buffer);
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
+    if (VA_OP_FAIL(vaDestroyBuffer(_display, buffer)))
+    {
+        VAAPI_LOG_ERROR << "vaDestroyBuffer fail, status is: " << VAStatusToStr(vaStatus);
+        assert(false);
+    }
 }
 
 VABufferID VADecoderContext::CreateVaSliceParamBuffer(VABufferType type, void* data, size_t size)
 {
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
     VABufferID buffer = VA_INVALID_ID;
-    if (vaCreateBuffer(_display, _context, type, size, 1, (void*)data, &buffer) != VA_STATUS_SUCCESS)
+    if (VA_OP_FAIL(vaCreateBuffer(_display, _context, type, size, 1, (void*)data, &buffer)))
     {
-        VAAPI_LOG_ERROR << "vaCreateBuffer fail, type is: VASliceParameterBufferType";
+        VAAPI_LOG_ERROR << "vaCreateBuffer fail, type is: VASliceParameterBufferType, status is: " << VAStatusToStr(vaStatus);
         assert(false);
     }
     return buffer;
@@ -132,15 +145,21 @@ VABufferID VADecoderContext::CreateVaSliceParamBuffer(VABufferType type, void* d
 
 void VADecoderContext::DestroyVaSliceParamBuffer(VABufferID buffer)
 {
-    vaDestroyBuffer(_display, buffer);
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
+    if (VA_OP_FAIL(vaDestroyBuffer(_display, buffer)))
+    {
+        VAAPI_LOG_ERROR << "vaDestroyBuffer fail, type is: VASliceParameterBufferType, status is: " << VAStatusToStr(vaStatus);
+        assert(false);
+    }
 }
 
 VABufferID VADecoderContext::CreateVaSliceDataBuffer(void* data, size_t size)
 {
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
     VABufferID buffer = VA_INVALID_ID;
-    if (vaCreateBuffer(_display, _context, VASliceDataBufferType, size, 1, (void*)data, &buffer) != VA_STATUS_SUCCESS)
+    if (VA_OP_FAIL(vaCreateBuffer(_display, _context, VASliceDataBufferType, size, 1, (void*)data, &buffer)))
     {
-        VAAPI_LOG_ERROR << "vaCreateBuffer fail, type is: VASliceDataBufferType";
+        VAAPI_LOG_ERROR << "vaCreateBuffer fail, type is: VASliceDataBufferType, status is: " << VAStatusToStr(vaStatus);
         assert(false);
     }
     return buffer;
@@ -148,44 +167,59 @@ VABufferID VADecoderContext::CreateVaSliceDataBuffer(void* data, size_t size)
 
 void VADecoderContext::DestroyVaSliceDataBuffer(VABufferID buffer)
 {
-    vaDestroyBuffer(_display, buffer);
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
+    if (VA_OP_FAIL(vaDestroyBuffer(_display, buffer)))
+    {
+        VAAPI_LOG_ERROR << "vaDestroyBuffer fail, status is: " << VAStatusToStr(vaStatus);
+        assert(false);
+    }
 }
 
 bool VADecoderContext::CommitVaDecodeCommand(VADecodePictureContext::ptr picContext)
 {
-    if (vaBeginPicture(_display, _context, picContext->surface) != VA_STATUS_SUCCESS)
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
+    if (VA_OP_FAIL(vaBeginPicture(_display, _context, picContext->surface)))
     {
-        VAAPI_LOG_ERROR << "vaBeginPicture fail";
+        VAAPI_LOG_ERROR << "vaBeginPicture fail, status is: " << VAStatusToStr(vaStatus);
         assert(false);
         goto END;
     }
-    if (vaRenderPicture(_display, _context, const_cast<VABufferID *>(picContext->paramBuffers.data()), picContext->paramBuffers.size()) != VA_STATUS_SUCCESS)
+    if (VA_OP_FAIL(vaRenderPicture(_display, _context, const_cast<VABufferID *>(picContext->paramBuffers.data()), picContext->paramBuffers.size())))
     {
-        VAAPI_LOG_ERROR << "vaRenderPicture fail";
+        VAAPI_LOG_ERROR << "vaRenderPicture fail, status is: " << VAStatusToStr(vaStatus);
         assert(false);
         goto END1;
     }
-    if (vaRenderPicture(_display, _context, const_cast<VABufferID *>(picContext->sliceBuffers.data()), picContext->sliceBuffers.size()) != VA_STATUS_SUCCESS)
+    if (VA_OP_FAIL(vaRenderPicture(_display, _context, const_cast<VABufferID *>(picContext->sliceBuffers.data()), picContext->sliceBuffers.size())))
     {
-        VAAPI_LOG_ERROR << "vaRenderPicture fail";
+        VAAPI_LOG_ERROR << "vaRenderPicture fail, status is: " << VAStatusToStr(vaStatus);
         assert(false);
         goto END1;
     }
-    vaEndPicture(_display, _context);
+    if (VA_OP_FAIL(vaEndPicture(_display, _context)))
+    {
+        VAAPI_LOG_ERROR << "vaEndPicture fail, status is: " << VAStatusToStr(vaStatus);
+        assert(false);
+    }
     return true;
 END1:
-    vaEndPicture(_display, _context);
+    if (VA_OP_FAIL(vaEndPicture(_display, _context)))
+    {
+        VAAPI_LOG_ERROR << "vaEndPicture fail, status is: " << VAStatusToStr(vaStatus);
+        assert(false);
+    }
 END:
     return false;
 }
 
 bool VADecoderContext::SyncVaSurface(VASurfaceID surfaceId)
 {
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
     if (VA_INVALID_ID != surfaceId)
     {
-        if (vaSyncSurface(_display, surfaceId))
+        if (VA_OP_FAIL(vaSyncSurface(_display, surfaceId)))
         {
-            VAAPI_LOG_WARN << "vaSyncSurface fail";
+            VAAPI_LOG_WARN << "vaSyncSurface fail, status is: " << VAStatusToStr(vaStatus);
             assert(false);
             return false;
         }
@@ -203,27 +237,32 @@ bool VADecoderContext::SyncVaSurface(VASurfaceID surfaceId)
 
 bool VADecoderContext::MapVaSurface(VASurfaceID surfaceId, VAImage& image, void*& address)
 {
-    if (vaCreateImage(_display,  &_imageFormat, _params.width, _params.height, &image))
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
+    if (VA_OP_FAIL(vaCreateImage(_display,  &_imageFormat, _params.width, _params.height, &image)))
     {
-        VAAPI_LOG_WARN << "vaCreateImage fail";
+        VAAPI_LOG_WARN << "vaCreateImage fail, status is: " << VAStatusToStr(vaStatus);
         assert(false);
         goto END;
     }
-    if (vaGetImage(_display, surfaceId, 0, 0, _params.width, _params.height, image.image_id))
+    if (VA_OP_FAIL(vaGetImage(_display, surfaceId, 0, 0, _params.width, _params.height, image.image_id)))
     {
-        VAAPI_LOG_WARN << "vaGetImage fail";
+        VAAPI_LOG_WARN << "vaGetImage fail, status is: " << VAStatusToStr(vaStatus);
         assert(false);
         goto END1;
     }
-    if (vaMapBuffer(_display, image.buf, &address))
+    if (VA_OP_FAIL(vaMapBuffer(_display, image.buf, &address)))
     {
-        VAAPI_LOG_WARN << "vaMapBuffer fail";
+        VAAPI_LOG_WARN << "vaMapBuffer fail, status is: " << VAStatusToStr(vaStatus);
         assert(false);
         goto END1;
     }
     return true;
 END1:
-    vaDestroyImage(_display, image.image_id);
+    if (VA_OP_FAIL(vaDestroyImage(_display, image.image_id)))
+    {
+        VAAPI_LOG_WARN << "vaDestroyImage fail, status is: " << VAStatusToStr(vaStatus);
+        assert(false);
+    }
 END:
     image.image_id = VA_INVALID_ID;
     address = nullptr;
@@ -232,28 +271,30 @@ END:
 
 void VADecoderContext::UnMapVaSurface(const VAImage& image)
 {
-    if (vaUnmapBuffer(_display, image.buf))
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
+    if (VA_OP_FAIL(vaUnmapBuffer(_display, image.buf)))
     {
-        VAAPI_LOG_WARN << "vaUnmapBuffer fail";
+        VAAPI_LOG_WARN << "vaUnmapBuffer fail, status is: " << VAStatusToStr(vaStatus);
         assert(false);
     }
-    if (vaDestroyImage(_display, image.image_id))
+    if (VA_OP_FAIL(vaDestroyImage(_display, image.image_id)))
     {
-        VAAPI_LOG_WARN << "vaDestroyImage fail";
+        VAAPI_LOG_WARN << "vaDestroyImage fail, status is: " << VAStatusToStr(vaStatus);
         assert(false);
     }
 }
 
 bool VADecoderContext::CreateContext()
 {
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
     if (_context != VA_INVALID_ID)
     {
         return true;
     }
     VAAPI_LOG_INFO << "-- CreateContext";
-    if (vaCreateContext(_display, _config, _params.width, _params.height, VA_PROGRESSIVE, nullptr, 0, &_context) != VA_STATUS_SUCCESS)
+    if (VA_OP_FAIL(vaCreateContext(_display, _config, _params.width, _params.height, VA_PROGRESSIVE, nullptr, 0, &_context)))
     {  
-        VAAPI_LOG_ERROR << "vaCreateContext fail";
+        VAAPI_LOG_ERROR << "vaCreateContext fail, status is: " << VAStatusToStr(vaStatus);
         assert(false);
         goto END;
     }
@@ -264,17 +305,23 @@ END:
 
 void VADecoderContext::DestroyContext()
 {
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
     if (_context == VA_INVALID_ID)
     {
         return;
     }
     VAAPI_LOG_INFO << "-- DestroyContext";
-    vaDestroyContext(_display, _context);
+    if (VA_OP_FAIL(vaDestroyContext(_display, _context)))
+    {
+        VAAPI_LOG_ERROR << "vaDestroyContext fail, status is: " << VAStatusToStr(vaStatus);
+        assert(false);
+    }
     _context = VA_INVALID_ID;
 }
 
 bool VADecoderContext::CreateVaConfig()
 {
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
     if (_config != VA_INVALID_ID)
     {
         return true;
@@ -286,9 +333,9 @@ bool VADecoderContext::CreateVaConfig()
         VAAPI_LOG_ERROR << "Unsupport profile, profile is: " << VAProfileToStr(vaProfile);
         goto END;
     }
-    if (vaCreateConfig(_display, vaProfile, VAEntrypointVLD, nullptr, 0, &_config) != VA_STATUS_SUCCESS)
+    if (VA_OP_FAIL(vaCreateConfig(_display, vaProfile, VAEntrypointVLD, nullptr, 0, &_config)))
     {
-        VAAPI_LOG_ERROR << "vaCreateConfig fail";
+        VAAPI_LOG_ERROR << "vaCreateConfig fail, status is: " << VAStatusToStr(vaStatus);
         assert(false);
         goto END;
     }
@@ -299,12 +346,17 @@ END:
 
 void VADecoderContext::DestroyVaConfig()
 {
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
     if (_config == VA_INVALID_ID)
     {
         return;
     }
     VAAPI_LOG_INFO << "-- DestroyVaConfig";
-    vaDestroyConfig(_display, _config);
+    if (VA_OP_FAIL(vaDestroyConfig(_display, _config)))
+    {
+        VAAPI_LOG_ERROR << "vaDestroyConfig fail, status is: " << VAStatusToStr(vaStatus);
+        assert(false);
+    }
     _config = VA_INVALID_ID;
 }
 
