@@ -254,7 +254,7 @@ bool SDLWindow::InitSDL()
 void SDLWindow::UnInitSDL()
 {
     WIN_LOG_INFO << "SDL Display Uninit";
-    SDL_Quit();
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
     _isInited = false;
 }
 

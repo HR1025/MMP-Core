@@ -90,7 +90,7 @@ private:
 	uint8_t _stencilCompareMask = 0;
 private:
     std::vector<OpenGLSamplerState::ptr>     _boundSamplers;
-    std::vector<OpenGLRenderTexture::ptr>    _boundTextures;
+    std::vector<OpenGLRenderTexture::ptr>    _boundTextures; // TODO : a better way, for now must use `ReleaseResource`
     std::vector<OpenGLBuffer::ptr>           _currentVBuffers;
     std::vector<int>                         _currentVBuffersOffsets;
     OpenGLBuffer::ptr                        _currentIndexBuffer;
