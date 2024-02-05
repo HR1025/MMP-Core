@@ -198,7 +198,7 @@ ShaderModule::ptr OpenGLDrawContex::CreateShaderModule(SL::ShaderStage stage, SL
     // add version information
     if (lang == SL::ShaderLanguage::GLSL_4xx)
     {
-        _code += "#version 420 core\n";
+        _code += "#version 410 core\n";
     }
     else if (lang == SL::ShaderLanguage::ELSL_3xx)
     {
