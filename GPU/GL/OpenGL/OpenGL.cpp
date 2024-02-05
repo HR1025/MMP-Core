@@ -212,14 +212,6 @@ void OpenGL::ThreadEnd()
 void OpenGL::ThreadStop()
 {
     GL_LOG_INFO << "Render Thread Stop";
-    // * 资源回收
-    {
-        // Hint : 实际上还是借助于 C++ RAII 的特性
-        std::lock_guard<std::recursive_mutex> lock(_recyclingMtx);
-        std::vector<Any> dummy;
-        _recycling.swap(dummy);
-        glFinish();
-    }
     // Hint : 处理渲染器线程退出特殊操作
     if (_renderTID != std::this_thread::get_id())
     {
@@ -236,6 +228,7 @@ void OpenGL::ThreadStop()
         {
             GL_LOG_WARN << "Render Thread is already in pausing state, not need to stop again, waiting for exit";
         }
+        FlushSync();
     }
     else
     {
@@ -278,9 +271,16 @@ GpuTaskStatus OpenGL::ThreadFrame()
         {
             // Hint : 实际上还是借助于 C++ RAII 的特性
             std::lock_guard<std::recursive_mutex> lock(_recyclingMtx);
-            std::vector<Any> dummy;
-            _recycling.swap(dummy);
-            glFinish();
+            bool needClean = !_recycling.empty();
+            if (needClean)
+            {
+                std::vector<Any> dummy;
+                _recycling.swap(dummy);
+            }
+            if (needClean)
+            {
+                glFinish();
+            }
         }
         // * 处理渲染线程退出请求
         {
