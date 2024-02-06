@@ -151,6 +151,13 @@ void OpenGL::PerformBindFramebufferAsRenderTarget(const OpenGLRenderStep& pass)
         FBOUnbind();
     }
 
+    // Hint : 延迟触发 OpenGLRenderFrameBuffer 析构, 避免导致当前 GL 状态异常
+    if (_currentFrameBuffer)
+    {
+        std::lock_guard<std::recursive_mutex> recyclingLock(_recyclingMtx);
+        _recycling.push_back(_currentFrameBuffer);
+    }
+
     _currentFrameBuffer = renderData.framebuffer;
 
     CHECK_GL_ERROR_IF_DEBUG();
