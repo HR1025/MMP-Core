@@ -57,7 +57,7 @@ SharedDataPool::SharedDataPool(size_t dataSize, size_t capacity, AbstractAllocat
 
     for (size_t i=0; i<_capacity; i++)
     {
-        _idles.insert(_curSlot);
+        _idles.insert((uint32_t)_curSlot);
         _availableSlot++;
         _curSlot++;
     }
@@ -70,7 +70,7 @@ void SharedDataPool::AddCapacity(size_t n)
     _capacity += n;
     for (size_t i=0; i<n; i++)
     {
-        _idles.insert(_curSlot);
+        _idles.insert((uint32_t)_curSlot);
         _availableSlot++;
         _curSlot++;
     }
@@ -171,19 +171,19 @@ AbstractSharedData::ptr SharedDataPool::Request(uint32_t waitTimeMs)
             return;
         }
         std::lock_guard<std::mutex> lock(this->_mtx);
-        if (this->_occupys.count(slot))
+        if (this->_occupys.count((uint32_t)slot))
         {
-            this->_occupys.erase(slot);
+            this->_occupys.erase((uint32_t)slot);
             this->_usedSlot--;
         }
         if (this->_allocatedSlot > this->_capacity) // Hint : 回收动态减少容量多余的部分
         {
-            this->_buffers.erase(slot);
+            this->_buffers.erase((uint32_t)slot);
             this->_allocatedSlot--;
         }
         else
         {
-            this->_idles.insert(slot);
+            this->_idles.insert((uint32_t)slot);
             this->_availableSlot++;
             this->_cond.notify_one();
         }
@@ -226,17 +226,17 @@ AbstractSharedData::ptr SharedDataPool::TryRequest()
         std::lock_guard<std::mutex> lock(this->_mtx);
         if (this->_occupys.count(slot))
         {
-            this->_occupys.erase(slot);
+            this->_occupys.erase((uint32_t)slot);
             this->_usedSlot--;
         }
         if (this->_allocatedSlot > this->_capacity) // Hint : 回收动态减少容量多余的部分
         {
-            this->_buffers.erase(slot);
+            this->_buffers.erase((uint32_t)slot);
             this->_allocatedSlot--;
         }
         else
         {
-            this->_idles.insert(slot);
+            this->_idles.insert((uint32_t)slot);
             this->_availableSlot++;
             this->_cond.notify_one();
         }
