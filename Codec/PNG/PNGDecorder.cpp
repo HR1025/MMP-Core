@@ -84,6 +84,7 @@ bool PngDecoder::Pop(AbstractFrame::ptr& frame)
 {
     std::lock_guard<std::recursive_mutex> lock(_mutex);
     frame = _picture;
+    frame->sideData = _picture->info;
     _picture.reset();
     return frame ? true : false;
 }

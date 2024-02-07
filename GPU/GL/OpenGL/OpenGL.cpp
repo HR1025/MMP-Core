@@ -250,10 +250,6 @@ void OpenGL::ThreadStop()
 
 GpuTaskStatus OpenGL::ThreadFrame()
 {
-    if (!_running)
-    {
-        return GpuTaskStatus::EXIT;
-    }
     OpenGLThreadTask task;
     while (true)
     {
