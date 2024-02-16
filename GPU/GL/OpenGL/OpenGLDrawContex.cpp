@@ -72,6 +72,7 @@ void OpenGLDrawContex::ThreadStop()
         }
         for (auto& texture : _boundTextures)
         {
+            _openGL->ReleaseResource(texture);
             texture.reset();
         }
         for (auto& buffer : _currentVBuffers)
@@ -198,7 +199,7 @@ ShaderModule::ptr OpenGLDrawContex::CreateShaderModule(SL::ShaderStage stage, SL
     // add version information
     if (lang == SL::ShaderLanguage::GLSL_4xx)
     {
-        _code += "#version 420 core\n";
+        _code += "#version 410 core\n";
     }
     else if (lang == SL::ShaderLanguage::ELSL_3xx)
     {
@@ -733,6 +734,11 @@ void OpenGLDrawContex::BindTextures(int start, std::vector<Texture::ptr> texture
     for (size_t i=0; i<count; i++)
     {
         OpenGLTexture::ptr texture = std::dynamic_pointer_cast<OpenGLTexture>(textures[i]);
+        {
+            OpenGLRenderTexture::ptr oldTexture = _boundTextures[i+start];
+            _boundTextures[i+start] = nullptr;
+            _openGL->ReleaseResource(std::move(oldTexture));
+        }
         if (!texture)
         {
             // Unbind texture
@@ -857,7 +863,7 @@ void OpenGLDrawContex::BindFramebufferAsTexture(FrameBuffer::ptr fbo, int bindin
         _boundTextures[binding] = fb->frameBuffer->zStencilTexture;
     }
 
-    // Bind Framebuffer As Targer
+    // Bind Framebuffer As Target
     {
         assert(_openGL->_curStep && _openGL->_curStep->stepType == OpenGLRenderStepType::RENDER);
         OpenGLRender command;

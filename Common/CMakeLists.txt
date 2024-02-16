@@ -103,8 +103,10 @@ list(APPEND Common_SRCS
 )
 
 set(USE_DRM FALSE)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(DRM libdrm)
+if (NOT MSVC)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(DRM libdrm)
+endif()
 if (DRM_FOUND)
     set(USE_DRM TRUE)
     list(APPEND Codec_INCS ${DRM_INCLUDE_DIRS})
