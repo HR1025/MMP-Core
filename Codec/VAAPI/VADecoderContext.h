@@ -32,7 +32,7 @@ public:
     void DestroyVaSurface(VASurfaceID surfaceId);
     VABufferID CreateVaParamBuffer(VABufferType type, void* data, size_t size);
     void DestroyVaParamBuffer(VABufferID buffer);
-    VABufferID CreateVaSliceParamBuffer(VABufferType type, void* data, size_t size);
+    VABufferID CreateVaSliceParamBuffer(void* data, size_t size);
     void DestroyVaSliceParamBuffer(VABufferID buffer);
     VABufferID CreateVaSliceDataBuffer(void* data, size_t size);
     void DestroyVaSliceDataBuffer(VABufferID buffer);

@@ -63,6 +63,7 @@ void VASurfaceAllocateMethod::Map()
         if (_context->GetDecoderContext()->MapVaSurface(_context->surface, _image, _data))
         {
             _isMap = true;
+            MMP_LOG_TRACE << "Map, surface id is: " << _context->surface << " , image id is: " << _image.image_id;
         }
         else
         {
@@ -77,6 +78,7 @@ void VASurfaceAllocateMethod::UnMap()
 {
     if (_isMap)
     {
+        MMP_LOG_TRACE << "Unmap, image id is: " << _image.image_id;
         _context->GetDecoderContext()->UnMapVaSurface(_image);
         _image = {};
         _data = nullptr;
