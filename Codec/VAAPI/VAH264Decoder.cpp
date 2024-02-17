@@ -435,8 +435,8 @@ void VAH264Decoder::DecodedBitStream(const Any& context)
             }
         }
     }
-    _curPic->sliceBuffers.push_back(GetContext()->CreateVaSliceParamBuffer(VASliceDataBufferType, &sliceParameter, sizeof(VASliceParameterBufferH264)));
-    _curPic->sliceBuffers.push_back(GetContext()->CreateVaSliceParamBuffer(VASliceDataBufferType, pack->GetData(), pack->GetSize()));
+    _curPic->sliceBuffers.push_back(GetContext()->CreateVaSliceParamBuffer(&sliceParameter, sizeof(VASliceParameterBufferH264)));
+    _curPic->sliceBuffers.push_back(GetContext()->CreateVaSliceDataBuffer(pack->GetData(), pack->GetSize()));
 }
 
 void VAH264Decoder::EndFrame(const Any& context)

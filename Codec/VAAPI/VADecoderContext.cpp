@@ -131,11 +131,11 @@ void VADecoderContext::DestroyVaParamBuffer(VABufferID buffer)
     }
 }
 
-VABufferID VADecoderContext::CreateVaSliceParamBuffer(VABufferType type, void* data, size_t size)
+VABufferID VADecoderContext::CreateVaSliceParamBuffer(void* data, size_t size)
 {
     VAStatus vaStatus = VA_STATUS_SUCCESS;
     VABufferID buffer = VA_INVALID_ID;
-    if (VA_OP_FAIL(vaCreateBuffer(_display, _context, type, size, 1, (void*)data, &buffer)))
+    if (VA_OP_FAIL(vaCreateBuffer(_display, _context, VASliceParameterBufferType, size, 1, (void*)data, &buffer)))
     {
         VAAPI_LOG_ERROR << "vaCreateBuffer fail, type is: VASliceParameterBufferType, status is: " << VAStatusToStr(vaStatus);
         assert(false);
@@ -201,6 +201,7 @@ bool VADecoderContext::CommitVaDecodeCommand(VADecodePictureContext::ptr picCont
         VAAPI_LOG_ERROR << "vaEndPicture fail, status is: " << VAStatusToStr(vaStatus);
         assert(false);
     }
+    VAAPI_LOG_TRACE << "CommitVaDecodeCommand , surface id is: " << picContext->surface;
     return true;
 END1:
     if (VA_OP_FAIL(vaEndPicture(_display, _context)))
@@ -238,6 +239,7 @@ bool VADecoderContext::SyncVaSurface(VASurfaceID surfaceId)
 bool VADecoderContext::MapVaSurface(VASurfaceID surfaceId, VAImage& image, void*& address)
 {
     VAStatus vaStatus = VA_STATUS_SUCCESS;
+    VAAPI_LOG_TRACE << "MapVaSurface, surface id is: " << surfaceId << " " << _params.width << "x" << _params.height;
     if (VA_OP_FAIL(vaCreateImage(_display,  &_imageFormat, _params.width, _params.height, &image)))
     {
         VAAPI_LOG_WARN << "vaCreateImage fail, status is: " << VAStatusToStr(vaStatus);
