@@ -89,7 +89,7 @@ std::string VAStatusToStr(VAStatus status)
         case VA_STATUS_ERROR_HW_BUSY: return "VA_STATUS_ERROR_HW_BUSY";
         case VA_STATUS_ERROR_UNSUPPORTED_MEMORY_TYPE: return "VA_STATUS_ERROR_UNSUPPORTED_MEMORY_TYPE";
         case VA_STATUS_ERROR_NOT_ENOUGH_BUFFER: return "VA_STATUS_ERROR_NOT_ENOUGH_BUFFER";
-        case VA_STATUS_ERROR_TIMEDOUT: return "VA_STATUS_ERROR_TIMEDOUT";
+        case 0x00000026 /* VA_STATUS_ERROR_TIMEDOUT */: return "VA_STATUS_ERROR_TIMEDOUT";
         default:
             return std::string() + "VA_STATUS_ERROR_UNKNOWN(" + std::to_string((uint32_t)status) + ")";
     }
