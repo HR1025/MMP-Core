@@ -25,6 +25,11 @@ namespace Codec
 
 /**
  * @todo 支持以及完善缓冲区机制 
+ * @sa   Reference guide code:
+ *       1 - FFmpeg : https://github.com/FFmpeg/FFmpeg
+ *       2 - virglrenderer : https://gitlab.freedesktop.org/virgl/virglrenderer/ (also refer to mesa)
+ *       3 - libva-h264 : https://github.com/intel/libva-h264 (deprecated)
+ *       4 - libva doxgen : http://intel.github.io/libva/
  */
 class VADecoder : public AbstractDecoder, public std::enable_shared_from_this<VADecoder>
 {
