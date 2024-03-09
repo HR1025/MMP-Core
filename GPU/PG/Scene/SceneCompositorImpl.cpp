@@ -7,7 +7,7 @@
 
 #include "Common/PixelFormat.h"
 #include "Common/PixelFormat.h"
-#include "Utility/GPU/CommonUtility.h"
+#include "Utility/CommonUtility.h"
 
 namespace Mmp
 {
@@ -70,7 +70,7 @@ bool SceneCompositorImpl::AddSceneLayer(const std::string& tag, AbstractSceneLay
     {
         SceneCompositorParam param = _param;
         _layers[tag] = layer;
-        layer->UpdateCanvas(Gpu::Utility::Create2DTextures(_draw, PixelsInfo(param.width, param.height, 8, PixelFormat::RGBA8888), "Framebuffer", true)[0]);
+        layer->UpdateCanvas(Gpu::Create2DTextures(_draw, PixelsInfo(param.width, param.height, 8, PixelFormat::RGBA8888), "Framebuffer", true)[0]);
         return true;
     }
 }
@@ -118,7 +118,7 @@ void SceneCompositorImpl::Draw()
         SceneCompositorParam param = _param;
         for (uint32_t i=0; i<_param.bufSize; i++)
         {
-            _frameBuffers.push_back(Gpu::Utility::Create2DTextures(_draw, PixelsInfo(param.width, param.height, 8, PixelFormat::RGBA8888), "Framebuffer", true)[0]);
+            _frameBuffers.push_back(Gpu::Create2DTextures(_draw, PixelsInfo(param.width, param.height, 8, PixelFormat::RGBA8888), "Framebuffer", true)[0]);
         }
         _isInit = true;
     }
