@@ -25,3 +25,6 @@
 [submodule "Extension/openh264"]
 	path = Extension/openh264
 	url = https://github.com/cisco/openh264.git
+[submodule "Extension/eigen"]
+	path = Extension/eigen
+	url = https://github.com/HR1025/eigen.git

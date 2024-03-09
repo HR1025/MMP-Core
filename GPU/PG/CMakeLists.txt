@@ -9,6 +9,7 @@ list(APPEND PG_INCS
     ${MMP_PRO_TOP_DIR}
     ${MMP_CORE_PRO_TOP_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${MMP_CORE_PRO_TOP_DIR}/Extension/eigen
 )
 
 
