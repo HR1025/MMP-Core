@@ -18,5 +18,7 @@ namespace Codec
 
 std::string VAProfileToStr(VAProfile profile);
 
+std::string VAStatusToStr(VAStatus status);
+
 } // namespace Codec
 } // namespace Mmp

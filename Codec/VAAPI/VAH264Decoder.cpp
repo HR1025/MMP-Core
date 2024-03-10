@@ -6,6 +6,7 @@
 
 #include "VAUtil.h"
 #include "VATranslator.h"
+#include "VASurfaceAllocateMethod.h"
 
 namespace Mmp
 {
@@ -138,6 +139,10 @@ bool VAH264Decoder::Push(AbstractPack::ptr pack)
     {
         return true;
     }
+    if (!CanPush())
+    {
+        return false;
+    }
     {
         H264StartFrameContext context;
         context.nal = nal;
@@ -164,7 +169,6 @@ bool VAH264Decoder::Push(AbstractPack::ptr pack)
         H264EndFrameContext context;
         EndFrame(context);
     }
-
     return true;
 }
 
@@ -278,7 +282,7 @@ void VAH264Decoder::StartFrame(const Any& context)
                 }
             }
         }
-        _curPic->paramBuffers.push_back(CreateVaParamBuffer(VAPictureParameterBufferType, &picParam, sizeof(VAPictureParameterBufferH264)));
+        _curPic->paramBuffers.push_back(GetContext()->CreateVaParamBuffer(VAPictureParameterBufferType, &picParam, sizeof(VAPictureParameterBufferH264)));
     }
     // VAIQMatrixBufferType
     {
@@ -299,7 +303,7 @@ void VAH264Decoder::StartFrame(const Any& context)
                 iqMatix.ScalingList8x8[i][j] = ScalingList8[j];
             }
         }
-        _curPic->paramBuffers.push_back(CreateVaParamBuffer(VAIQMatrixBufferType, &iqMatix, sizeof(VAIQMatrixBufferH264)));
+        _curPic->paramBuffers.push_back(GetContext()->CreateVaParamBuffer(VAIQMatrixBufferType, &iqMatix, sizeof(VAIQMatrixBufferH264)));
     }
 }
 
@@ -344,6 +348,10 @@ void VAH264Decoder::DecodedBitStream(const Any& context)
         size_t index = 0;
         for (const auto& RefPic : RefPicList0)
         {
+            if (!RefPic)
+            {
+                continue;
+            }
             VAH264DecodePictureContext::ptr vaRefPic = std::dynamic_pointer_cast<VAH264DecodePictureContext>(RefPic);
             FillVAPictureH264(vaRefPic, sliceParameter.RefPicList0[index]);
             index++;
@@ -362,6 +370,10 @@ void VAH264Decoder::DecodedBitStream(const Any& context)
         size_t index = 0;
         for (const auto& RefPic : RefPicList1)
         {
+            if (!RefPic)
+            {
+                continue;
+            }
             VAH264DecodePictureContext::ptr vaRefPic = std::dynamic_pointer_cast<VAH264DecodePictureContext>(RefPic);
             FillVAPictureH264(vaRefPic, sliceParameter.RefPicList1[index]);
             index++;
@@ -423,19 +435,32 @@ void VAH264Decoder::DecodedBitStream(const Any& context)
             }
         }
     }
-    _curPic->sliceBuffers.push_back(CreateVaSliceParamBuffer(VASliceDataBufferType, &sliceParameter, sizeof(VASliceParameterBufferH264)));
-    _curPic->sliceBuffers.push_back(CreateVaSliceParamBuffer(VASliceDataBufferType, pack->GetData(), pack->GetSize()));
+    _curPic->sliceBuffers.push_back(GetContext()->CreateVaSliceParamBuffer(&sliceParameter, sizeof(VASliceParameterBufferH264)));
+    _curPic->sliceBuffers.push_back(GetContext()->CreateVaSliceDataBuffer(pack->GetData(), pack->GetSize()));
 }
 
 void VAH264Decoder::EndFrame(const Any& context)
 {
-    CommitVaDecodeCommand(_curPic);
+    GetContext()->CommitVaDecodeCommand(_curPic);
+    {
+        VASurfaceAllocateMethod::ptr allocate = std::make_shared<VASurfaceAllocateMethod>(_curPic);
+        PixelsInfo info = {};
+        {
+            const VaDecoderParams& decoderParams = GetDecoderParams();
+            info.bitdepth = 8;
+            info.width = decoderParams.width;
+            info.height = decoderParams.height;
+            info.format = decoderParams.format;
+        }
+        StreamFrame::ptr frame = std::make_shared<StreamFrame>(info, allocate);
+        PushFrame(frame);
+    }
     _curPic = nullptr;
 }
 
 bool VAH264Decoder::InitH264Picture(VAH264DecodePictureContext::ptr picture)
 {
-    picture->SetVADecoder(shared_from_this());
+    picture->SetDecoderContext(GetContext());
     VaDecoderParams decoderParam = GetDecoderParams();
     std::vector<VASurfaceAttrib> attributes;
     if (decoderParam.flag & MmpVaDecodeFlag::MMP_VA_DECODE_FALG_NEED_MEMORY_TYPE)
@@ -452,7 +477,7 @@ bool VAH264Decoder::InitH264Picture(VAH264DecodePictureContext::ptr picture)
         // TODO
         assert(false);
     }
-    picture->surface = CreateVaSurface(attributes);
+    picture->surface = GetContext()->CreateVaSurface(attributes);
     return picture->surface != VA_INVALID_ID ? true : false;
 }
 

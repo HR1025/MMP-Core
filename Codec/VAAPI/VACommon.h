@@ -28,6 +28,9 @@
 #include "Codec/H264/H264Common.h"
 #include "VAAPI/VADecodePictureContext.h"
 
+#define VA_OP_SUCCESS(operation) ((vaStatus = operation) == VA_STATUS_SUCCESS)
+#define VA_OP_FAIL(operation)    ((vaStatus = operation) != VA_STATUS_SUCCESS)
+
 #define VAAPI_LOG_TRACE   MMP_MLOG_TRACE("VAAPI")    
 #define VAAPI_LOG_DEBUG   MMP_MLOG_DEBUG("VAAPI")    
 #define VAAPI_LOG_INFO    MMP_MLOG_INFO("VAAPI")     

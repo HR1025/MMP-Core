@@ -1215,7 +1215,7 @@ void OpenGL::RenderStepReadbackImage(OpenGLRenderStep& step)
             CHECK_GL_ERROR_IF_DEBUG();
 
         }
-        else if (OpenGLVersionGreater(_openGLFeature, 4, 2) || _openGLFeature.IsGLES)
+        else if (OpenGLVersionGreater(_openGLFeature, 4, 1) || _openGLFeature.IsGLES)
         {
             // Hint : OpenGL ES 使用 PBO 相比于直接使用 glReadPixels 效率会好一点
 

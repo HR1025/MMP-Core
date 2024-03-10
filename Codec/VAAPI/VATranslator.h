@@ -27,5 +27,7 @@ uint32_t H264SliceTypeToVaSliceType(H264SliceType type);
 
 uint32_t PixelFormatToVaRTFormat(PixelFormat format);
 
+uint32_t PixelFormatToVaFourcc(PixelFormat format);
+
 } // namespace Codec
 } // namespace Mmp

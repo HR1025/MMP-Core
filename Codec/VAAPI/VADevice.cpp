@@ -17,6 +17,7 @@
 #include <Poco/SortedDirectoryIterator.h>
 
 #include "VAUtil.h"
+#include "VATranslator.h"
 
 namespace Mmp
 {
@@ -155,6 +156,7 @@ void VADevice::Destroy()
     std::lock_guard<std::mutex> lock(_mtx);
     if (_reference > 1)
     {
+        _reference--;
         return;
     }
     vaTerminate(_display);
@@ -174,12 +176,13 @@ VADisplay VADevice::GetDisplay()
 std::set<VAProfile> VADevice::GetSupportProfiles()
 {
     std::lock_guard<std::mutex> lock(_mtx);
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
     if (_supportProfiles.empty())
     {
         std::vector<VAProfile> supportProfiles;
         int maxProfilesNum = vaMaxNumProfiles(_display);
         supportProfiles.resize(maxProfilesNum);
-        if (vaQueryConfigProfiles(_display, supportProfiles.data(), &maxProfilesNum) == VA_STATUS_SUCCESS)
+        if (VA_OP_SUCCESS(vaQueryConfigProfiles(_display, supportProfiles.data(), &maxProfilesNum)))
         {
             supportProfiles.resize(maxProfilesNum);
             VAAPI_LOG_INFO << "Support VA profiel:";
@@ -199,6 +202,22 @@ std::set<VAProfile> VADevice::GetSupportProfiles()
         }
     }
     return _supportProfiles;
+}
+
+bool VADevice::GetImageFormat(PixelFormat format, VAImageFormat& imageFormat)
+{
+    std::lock_guard<std::mutex> lock(_mtx);
+    bool found = false;
+    for (const auto& __imageFormat : _imageFormats)
+    {
+        if (__imageFormat.fourcc == PixelFormatToVaFourcc(format))
+        {
+            imageFormat = __imageFormat;
+            found = true;
+            break;
+        }
+    }
+    return found;
 }
 
 void VADevice::RegisterNoticeCenter()
@@ -288,6 +307,7 @@ void VADevice::QueryDeviceCompability()
         _vendor = std::string(vaQueryVendorString(_display));
     }
     {
+        VAStatus vaStatus = VA_STATUS_SUCCESS;
         int imageCount = 0;
         imageCount = vaMaxNumImageFormats(_display);
         if (imageCount <= 0)
@@ -297,7 +317,7 @@ void VADevice::QueryDeviceCompability()
         else
         {
             _imageFormats.resize(imageCount);
-            if (VA_STATUS_SUCCESS != vaQueryImageFormats(_display, _imageFormats.data(), &imageCount))
+            if (VA_OP_FAIL(vaQueryImageFormats(_display, _imageFormats.data(), &imageCount)))
             {
                 VAAPI_LOG_WARN << "vaQueryImageFormats fail";
             }

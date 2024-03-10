@@ -98,11 +98,15 @@ list(APPEND Common_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/EventTag.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/NoticeCenter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/NoticeCenter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CommonGeometry.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/CommonGeometry.cpp
 )
 
 set(USE_DRM FALSE)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(DRM libdrm)
+if (NOT MSVC)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(DRM libdrm)
+endif()
 if (DRM_FOUND)
     set(USE_DRM TRUE)
     list(APPEND Codec_INCS ${DRM_INCLUDE_DIRS})
