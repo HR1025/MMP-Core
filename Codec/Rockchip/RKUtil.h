@@ -17,5 +17,7 @@ namespace Codec
 
 std::string RkMppRetToStr(MPP_RET ret);
 
+std::string MpiCmdToStr(MpiCmd cmd);
+
 } // namespace Codec
 } // namespace Mmp

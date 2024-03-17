@@ -25,6 +25,9 @@
 #define RK_LOG_ERROR   MMP_MLOG_ERROR("RK")    
 #define RK_LOG_FATAL   MMP_MLOG_FATAL("RK")   
 
+#define RK_OP_SUCCESS(operation) ((rkRet = operation) == MPP_RET::MPP_OK)
+#define RK_OP_FAIL(operation)    ((rkRet = operation) != MPP_RET::MPP_OK)
+
 namespace Mmp
 {
 namespace Codec

@@ -16,6 +16,7 @@
 #include <mutex>
 
 #include "RKCommon.h"
+#include "Common/TaskQueue.h"
 
 namespace Mmp
 {
@@ -54,9 +55,13 @@ private:
     MppApi*         _mpi;
     MppCtx          _ctx;
     uint64_t        _timeout;
-    MppBufferGroup  _frameGroup;
     uint32_t        _maxFrame;
     MppPacket       _rkPacket;
+private:
+    std::atomic<bool>  _runing;
+    std::mutex         _thMtx;
+    TaskQueue::ptr     _thread;
+    MppBufferGroup     _frmGrp;
 };
 
 } // namespace Codec
