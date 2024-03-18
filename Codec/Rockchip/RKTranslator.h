@@ -17,5 +17,7 @@ namespace Codec
 
 MppCodingType CodecTypeToRkType(CodecType type);
 
+PixelFormat MppFrameFormatToPixformat(MppFrameFormat format);
+
 } // namespace Codec
 } // namespace Mmp

@@ -62,6 +62,9 @@ private:
     std::mutex         _thMtx;
     TaskQueue::ptr     _thread;
     MppBufferGroup     _frmGrp;
+private:
+    std::mutex                    _bufMtx;
+    std::deque<StreamFrame::ptr>  _buffers;
 };
 
 } // namespace Codec

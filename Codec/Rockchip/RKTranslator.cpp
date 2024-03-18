@@ -22,5 +22,19 @@ MppCodingType CodecTypeToRkType(CodecType type)
     }
 }
 
+PixelFormat MppFrameFormatToPixformat(MppFrameFormat format)
+{
+    switch (format)
+    {
+        case MppFrameFormat::MPP_FMT_YUV420SP:
+            return PixelFormat::NV12;
+        case MppFrameFormat::MPP_FMT_YUV420P:
+            return PixelFormat::YUV420P;
+        default:
+            assert(false);
+            return PixelFormat::NV12;
+    }
+}
+
 } // namespace Codec
 } // namespace Mmp

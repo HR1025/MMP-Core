@@ -7,12 +7,85 @@
 #include <thread>
 
 #include "rockchip/mpp_frame.h"
+#include "rockchip/mpp_buffer.h"
 
 #include "Common/Promise.h"
 
 #include "RKCommon.h"
 #include "RKUtil.h"
 #include "RKTranslator.h"
+
+#include "Common/AbstractAllocateMethod.h"
+
+namespace Mmp
+{
+
+class RkDecoderAllocateMethod : public AbstractAllocateMethod
+{
+public:
+    using ptr = std::shared_ptr<RkDecoderAllocateMethod>;
+public:
+    RkDecoderAllocateMethod();
+    ~RkDecoderAllocateMethod();
+public:
+    void* Malloc(size_t size) override;
+    void* Resize(void* data, size_t size) override;
+    void* GetAddress(uint64_t offset) override;
+    const std::string& Tag() override;
+public:
+    MppFrame frame;
+};
+
+RkDecoderAllocateMethod::RkDecoderAllocateMethod()
+{
+    frame = nullptr;
+}
+
+RkDecoderAllocateMethod::~RkDecoderAllocateMethod()
+{
+    if (frame)
+    {
+        mpp_frame_deinit(&frame);
+    }
+}
+
+void* RkDecoderAllocateMethod::Malloc(size_t /* size */)
+{
+    if (frame)
+    {        
+        return (void*)mpp_buffer_get_ptr(mpp_frame_get_buffer(frame));
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
+void* RkDecoderAllocateMethod::GetAddress(uint64_t offset)
+{
+    if (frame)
+    {        
+        return ((uint8_t*)mpp_buffer_get_ptr(mpp_frame_get_buffer(frame)) + offset);
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
+void* RkDecoderAllocateMethod::Resize(void* /* data */, size_t /* size */)
+{
+    assert(false);
+    return nullptr;
+}
+
+const std::string& RkDecoderAllocateMethod::Tag()
+{
+    static std::string tag = "RkDecoderAllocateMethod";
+    return tag;
+}
+
+} // namespace Mmp
 
 namespace Mmp
 {
@@ -277,9 +350,21 @@ bool RKDecoder::Start()
                     }
                 } while (0);
             }
-            // TODO
             // RK_LOG_INFO << "Pop";
-            mpp_frame_deinit(&frame);
+            {
+                std::lock_guard<std::mutex> bufLock(_bufMtx);
+                RkDecoderAllocateMethod::ptr alloc = std::make_shared<RkDecoderAllocateMethod>();
+                alloc->frame = frame;
+                PixelsInfo info;
+                {
+                    info.width = (int32_t)mpp_frame_get_hor_stride(frame);
+                    info.height = (int32_t)mpp_frame_get_ver_stride(frame);
+                    info.bitdepth = 8;
+                    info.format = MppFrameFormatToPixformat(mpp_frame_get_fmt(frame));
+                }
+                StreamFrame::ptr streamFrame = std::make_shared<StreamFrame>(info, alloc);
+                _buffers.push_back(streamFrame);
+            }
         }
         RK_LOG_INFO << "RK_DEC_THD end";
     }));
@@ -326,20 +411,28 @@ END:
 
 bool RKDecoder::Pop(AbstractFrame::ptr& frame)
 {
-    assert(false);
-    return false;
+    std::lock_guard<std::mutex> lock(_bufMtx);
+    if (_buffers.empty())
+    {
+        return false;
+    }
+    else
+    {
+        frame = _buffers.front();
+        _buffers.pop_front();
+        return true;
+    }
 }
 
 bool RKDecoder::CanPush()
 {
-    assert(false);
-    return false;
+    return true;
 }
 
 bool RKDecoder::CanPop()
 {
-    assert(false);
-    return false;
+    std::lock_guard<std::mutex> lock(_bufMtx);
+    return _buffers.empty();
 }
 
 const std::string& RKDecoder::Description()
