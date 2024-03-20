@@ -5,6 +5,8 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <fstream>
+#include <sstream>
 
 #include "rockchip/mpp_frame.h"
 #include "rockchip/mpp_buffer.h"
@@ -16,6 +18,9 @@
 #include "RKTranslator.h"
 
 #include "Common/AbstractAllocateMethod.h"
+
+#define ENABLE_RK_DECODE_DUMP 0
+#define RK_DECODE_DUMP_SIGNGLE_FILE 1
 
 namespace Mmp
 {
@@ -52,8 +57,17 @@ RkDecoderAllocateMethod::~RkDecoderAllocateMethod()
 void* RkDecoderAllocateMethod::Malloc(size_t /* size */)
 {
     if (frame)
-    {        
-        return (void*)mpp_buffer_get_ptr(mpp_frame_get_buffer(frame));
+    {   
+        MppBuffer buf = mpp_frame_get_buffer(frame);
+        if (buf)
+        {
+            return (void*)mpp_buffer_get_ptr(buf);
+        }
+        else
+        {
+            assert(false);
+            return nullptr;
+        }
     }
     else
     {
@@ -96,10 +110,21 @@ RKDecoder::RKDecoder()
 {
     _ctx = nullptr;
     _mpi = nullptr;
-    _timeout = 100;
-    _maxFrame = 16;
+    _timeout = 1;
     _rkPacket = nullptr;
     _frmGrp = nullptr;
+    _fastOutput = false;
+    _sync = true;
+    if (_sync)
+    {
+        _bufSize = 24;
+        _timeout = 1;
+    }
+    else
+    {
+        _bufSize = 24 * 4;
+        _timeout = 100;
+    }
 }
 
 void RKDecoder::SetParameter(Any parameter)
@@ -134,6 +159,7 @@ bool RKDecoder::CreateMPI()
         assert(false);
         goto END1;
     }
+    ReinitDecConfig();
     if (RK_OP_FAIL(mpp_init(_ctx, MppCtxType::MPP_CTX_DEC, codecType)))
     {
         RK_LOG_ERROR << "mpp_init fail, error is: " << RkMppRetToStr(rkRet);
@@ -174,10 +200,16 @@ bool RKDecoder::ReinitDecConfig()
         assert(false);
         goto END;
     }
-    // todo : something to config, for example base:split_parse
     if (RK_OP_FAIL(_mpi->control(_ctx, MPP_DEC_SET_CFG, rkCfg)))
     {
         RK_LOG_ERROR << "MppApi::control fail, cmd is: "<< MpiCmdToStr(MPP_DEC_SET_CFG) << " , error is: " << RkMppRetToStr(rkRet);
+        assert(false);
+        goto END;
+    }
+    paramS64 = _fastOutput ? 1 : 0;
+    if (RK_OP_FAIL(_mpi->control(_ctx, MPP_DEC_SET_IMMEDIATE_OUT, &paramS64)))
+    {
+        RK_LOG_ERROR << "MppApi::control fail, cmd is:" << MpiCmdToStr(MPP_DEC_SET_IMMEDIATE_OUT)  << " , error is: " << RkMppRetToStr(rkRet);
         assert(false);
         goto END;
     }
@@ -230,12 +262,6 @@ bool RKDecoder::Init()
         assert(false);
         goto END;
     }
-    if (!ReinitDecConfig())
-    {
-        RK_LOG_WARN << "ReinitDecConfig fail";
-        assert(false);
-        goto END1;
-    }
     if (!InitRkPacket())
     {
         RK_LOG_ERROR << "InitRkPacket fail";
@@ -264,129 +290,146 @@ bool RKDecoder::Start()
         assert(false);
         return false;
     }
-    _runing = true;
-    _thread = std::make_shared<TaskQueue>();
-    _thread->Start();
-    _thread->Commit(std::make_shared<Promise<void>>([this]() -> void
+    if (!_sync)
     {
-        RK_LOG_INFO << "RK_DEC_THD begin";
-        while (_runing)
+        _runing = true;
+        _thread = std::make_shared<TaskQueue>();
+        _thread->Start();
+        _thread->Commit(std::make_shared<Promise<void>>([this]() -> void
         {
-            MppFrame frame = nullptr;
-            do
+            RK_LOG_INFO << "RK_DEC_THD begin";
+            while (_runing)
             {
-                std::lock_guard<std::mutex> lock(_mtx);
-                MPP_RET rkRet = MPP_RET::MPP_OK;
-                if (!_mpi || !_ctx)
-                {
-                    assert(false);
-                    break;
-                }
-                if (RK_OP_FAIL(_mpi->decode_get_frame(_ctx, &frame)))
-                {
-                    if (rkRet != MPP_RET::MPP_ERR_TIMEOUT)
-                    {
-                        RK_LOG_WARN << "MppApi::decode_get_frame fail, error is: " << RkMppRetToStr(rkRet);
-                        assert(false);
-                        break;
-                    }
-                }
-            } while (0);
-            if (!frame)
-            {
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                continue;
-            }
-            if (mpp_frame_get_info_change(frame))
-            {
-                {
-                    RK_U32 width = mpp_frame_get_width(frame);
-                    RK_U32 height = mpp_frame_get_height(frame);
-                    RK_U32 horStride = mpp_frame_get_hor_stride(frame);
-                    RK_U32 verStride = mpp_frame_get_ver_stride(frame);
-                    RK_LOG_INFO << "mpp_frame_get_info_change, " << width << "x" << height << ":" << horStride << "x" << verStride;
-                }
-                MPP_RET rkRet = MPP_RET::MPP_OK;
-                RK_U32 bufSize = mpp_frame_get_buf_size(frame);
+                MppFrame frame = nullptr;
                 do
                 {
                     std::lock_guard<std::mutex> lock(_mtx);
-                    if (!_mpi)
+                    MPP_RET rkRet = MPP_RET::MPP_OK;
+                    if (!_mpi || !_ctx)
                     {
+                        assert(false);
                         break;
                     }
-                    if (nullptr == _frmGrp) 
+                    if (RK_OP_FAIL(_mpi->decode_get_frame(_ctx, &frame)))
                     {
-                        if (RK_OP_FAIL(mpp_buffer_group_get_internal(&_frmGrp, MPP_BUFFER_TYPE_DRM)))
+                        if (rkRet != MPP_RET::MPP_ERR_TIMEOUT)
                         {
-                            RK_LOG_WARN << "mpp_buffer_group_get_internal fail, error is: " << RkMppRetToStr(rkRet);
+                            RK_LOG_WARN << "MppApi::decode_get_frame fail, error is: " << RkMppRetToStr(rkRet);
                             assert(false);
                             break;
                         }
-                        if (RK_OP_FAIL(_mpi->control(_ctx, MPP_DEC_SET_EXT_BUF_GROUP, _frmGrp)))
-                        {
-                            RK_LOG_WARN << "MppApi::control fail cmd is:" << MpiCmdToStr(MPP_DEC_SET_EXT_BUF_GROUP) <<", error is: " << RkMppRetToStr(rkRet);
-                            assert(false);
-                            break;
-                        }
-                    }
-                    else if (RK_OP_FAIL(mpp_buffer_group_clear(_frmGrp)))
-                    {
-                        RK_LOG_WARN << "mpp_buffer_group_clear fail, error is: " << RkMppRetToStr(rkRet);
-                        assert(false);
-                        break;
-                    }
-                    if (RK_OP_FAIL(mpp_buffer_group_limit_config(_frmGrp, bufSize, 24)))
-                    {
-                        RK_LOG_WARN << "mpp_buffer_group_limit_config fail";
-                        assert(false);
-                        break;
-                    }
-                    if (RK_OP_FAIL(_mpi->control(_ctx, MPP_DEC_SET_INFO_CHANGE_READY, nullptr)))
-                    {
-                        RK_LOG_WARN << "MppApi::control fail cmd is:" << MpiCmdToStr(MPP_DEC_SET_INFO_CHANGE_READY) <<", error is: " << RkMppRetToStr(rkRet);
-                        assert(false);
-                        break;
                     }
                 } while (0);
-            }
-            // RK_LOG_INFO << "Pop";
-            {
-                std::lock_guard<std::mutex> bufLock(_bufMtx);
-                RkDecoderAllocateMethod::ptr alloc = std::make_shared<RkDecoderAllocateMethod>();
-                alloc->frame = frame;
-                PixelsInfo info;
+                if (!frame)
                 {
-                    info.width = (int32_t)mpp_frame_get_hor_stride(frame);
-                    info.height = (int32_t)mpp_frame_get_ver_stride(frame);
-                    info.bitdepth = 8;
-                    info.format = MppFrameFormatToPixformat(mpp_frame_get_fmt(frame));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                    continue;
                 }
-                StreamFrame::ptr streamFrame = std::make_shared<StreamFrame>(info, alloc);
-                _buffers.push_back(streamFrame);
+                if (mpp_frame_get_info_change(frame))
+                {
+                    {
+                        RK_U32 width = mpp_frame_get_width(frame);
+                        RK_U32 height = mpp_frame_get_height(frame);
+                        RK_U32 horStride = mpp_frame_get_hor_stride(frame);
+                        RK_U32 verStride = mpp_frame_get_ver_stride(frame);
+                        RK_LOG_INFO << "mpp_frame_get_info_change, " << width << "x" << height << ":" << horStride << "x" << verStride;
+                    }
+                    MPP_RET rkRet = MPP_RET::MPP_OK;
+                    RK_U32 bufSize = mpp_frame_get_buf_size(frame);
+                    do
+                    {
+                        std::lock_guard<std::mutex> lock(_mtx);
+                        if (!_mpi)
+                        {
+                            break;
+                        }
+                        if (nullptr == _frmGrp) 
+                        {
+                            if (RK_OP_FAIL(mpp_buffer_group_get_internal(&_frmGrp, MPP_BUFFER_TYPE_ION)))
+                            {
+                                RK_LOG_WARN << "mpp_buffer_group_get_internal fail, error is: " << RkMppRetToStr(rkRet);
+                                assert(false);
+                                break;
+                            }
+                            if (RK_OP_FAIL(_mpi->control(_ctx, MPP_DEC_SET_EXT_BUF_GROUP, _frmGrp)))
+                            {
+                                RK_LOG_WARN << "MppApi::control fail cmd is:" << MpiCmdToStr(MPP_DEC_SET_EXT_BUF_GROUP) <<", error is: " << RkMppRetToStr(rkRet);
+                                assert(false);
+                                break;
+                            }
+                        }
+                        else if (RK_OP_FAIL(mpp_buffer_group_clear(_frmGrp)))
+                        {
+                            RK_LOG_WARN << "mpp_buffer_group_clear fail, error is: " << RkMppRetToStr(rkRet);
+                            assert(false);
+                            break;
+                        }
+                        if (RK_OP_FAIL(mpp_buffer_group_limit_config(_frmGrp, bufSize, _bufSize)))
+                        {
+                            RK_LOG_WARN << "mpp_buffer_group_limit_config fail";
+                            assert(false);
+                            break;
+                        }
+                        if (RK_OP_FAIL(_mpi->control(_ctx, MPP_DEC_SET_INFO_CHANGE_READY, nullptr)))
+                        {
+                            RK_LOG_WARN << "MppApi::control fail cmd is:" << MpiCmdToStr(MPP_DEC_SET_INFO_CHANGE_READY) <<", error is: " << RkMppRetToStr(rkRet);
+                            assert(false);
+                            break;
+                        }
+                    } while (0);
+                    continue;
+                }
+                // RK_LOG_INFO << "Pop";
+                {
+                    std::lock_guard<std::mutex> bufLock(_bufMtx);
+                    RkDecoderAllocateMethod::ptr alloc = std::make_shared<RkDecoderAllocateMethod>();
+                    alloc->frame = frame;
+                    PixelsInfo info;
+                    {
+                        info.width = (int32_t)mpp_frame_get_hor_stride(frame);
+                        info.height = (int32_t)mpp_frame_get_ver_stride(frame);
+                        info.bitdepth = 8;
+                        info.format = MppFrameFormatToPixformat(mpp_frame_get_fmt(frame));
+                    }
+                    StreamFrame::ptr streamFrame = std::make_shared<StreamFrame>(info, alloc);
+                    _buffers.push_back(streamFrame);
+                }
             }
-        }
-        RK_LOG_INFO << "RK_DEC_THD end";
-    }));
+            RK_LOG_INFO << "RK_DEC_THD end";
+        }));
+    }
     return true;
 }
 
 void RKDecoder::Stop()
 {
     std::lock_guard<std::mutex> lock(_mtx);
-    if (!_thread)
+    if (!_sync && !_thread)
     {
         assert(false);
     }
-    _runing = false;
-    _thread->Stop();
-    _thread.reset();
+    if (!_sync)
+    {
+        _runing = false;
+        _thread->Stop();
+        _thread.reset();
+    }    
 }
 
 bool RKDecoder::Push(AbstractPack::ptr pack)
 {
     std::lock_guard<std::mutex> lock(_mtx);
     MPP_RET rkRet = MPP_OK;
+    size_t maxTryTime = 30, curTryTime = 0;
+#if ENABLE_RK_DECODE_DUMP
+    {
+        std::string filePath = "./dump.h264";
+        std::ofstream ofs(filePath, std::ios::app);
+        ofs.write((char *)pack->GetData(), pack->GetSize());
+        ofs.flush();
+        ofs.close();
+    }
+#endif /* ENABLE_RK_DECODE_DUMP */
     {
         mpp_packet_set_data(_rkPacket, pack->GetData());
         mpp_packet_set_size(_rkPacket, pack->GetSize());
@@ -403,7 +446,111 @@ bool RKDecoder::Push(AbstractPack::ptr pack)
         assert(false);
         goto END;
     }
-    // RK_LOG_INFO << "Push";
+    if (!_sync)
+    {
+        return true;
+    }
+    do
+    {
+        MppFrame frame = nullptr;
+        MPP_RET rkRet = MPP_RET::MPP_OK;
+        if (RK_OP_FAIL(_mpi->decode_get_frame(_ctx, &frame)))
+        {
+            if (rkRet != MPP_RET::MPP_ERR_TIMEOUT)
+            {
+                RK_LOG_WARN << "MppApi::decode_get_frame fail, error is: " << RkMppRetToStr(rkRet);
+                assert(false);
+                break;
+            }
+        }
+        if (!frame)
+        {
+            curTryTime++;
+            if (curTryTime <= maxTryTime)
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                continue;
+            }
+            else
+            {
+                break;
+            }
+        }
+        if (mpp_frame_get_info_change(frame))
+        {
+            {
+                RK_U32 width = mpp_frame_get_width(frame);
+                RK_U32 height = mpp_frame_get_height(frame);
+                RK_U32 horStride = mpp_frame_get_hor_stride(frame);
+                RK_U32 verStride = mpp_frame_get_ver_stride(frame);
+                RK_LOG_INFO << "mpp_frame_get_info_change, " << width << "x" << height << ":" << horStride << "x" << verStride;
+            }
+            MPP_RET rkRet = MPP_RET::MPP_OK;
+            RK_U32 bufSize = mpp_frame_get_buf_size(frame);
+            if (nullptr == _frmGrp) 
+            {
+                if (RK_OP_FAIL(mpp_buffer_group_get_internal(&_frmGrp, MPP_BUFFER_TYPE_ION)))
+                {
+                    RK_LOG_WARN << "mpp_buffer_group_get_internal fail, error is: " << RkMppRetToStr(rkRet);
+                    assert(false);
+                    break;
+                }
+                if (RK_OP_FAIL(_mpi->control(_ctx, MPP_DEC_SET_EXT_BUF_GROUP, _frmGrp)))
+                {
+                    RK_LOG_WARN << "MppApi::control fail cmd is:" << MpiCmdToStr(MPP_DEC_SET_EXT_BUF_GROUP) <<", error is: " << RkMppRetToStr(rkRet);
+                    assert(false);
+                    break;
+                }
+            }
+            else if (RK_OP_FAIL(mpp_buffer_group_clear(_frmGrp)))
+            {
+                RK_LOG_WARN << "mpp_buffer_group_clear fail, error is: " << RkMppRetToStr(rkRet);
+                assert(false);
+                break;
+            }
+            if (RK_OP_FAIL(mpp_buffer_group_limit_config(_frmGrp, bufSize, _bufSize)))
+            {
+                RK_LOG_WARN << "mpp_buffer_group_limit_config fail";
+                assert(false);
+                break;
+            }
+            if (RK_OP_FAIL(_mpi->control(_ctx, MPP_DEC_SET_INFO_CHANGE_READY, nullptr)))
+            {
+                RK_LOG_WARN << "MppApi::control fail cmd is:" << MpiCmdToStr(MPP_DEC_SET_INFO_CHANGE_READY) <<", error is: " << RkMppRetToStr(rkRet);
+                assert(false);
+                break;
+            }
+            continue;
+        }
+        {
+            std::lock_guard<std::mutex> bufLock(_bufMtx);
+            RkDecoderAllocateMethod::ptr alloc = std::make_shared<RkDecoderAllocateMethod>();
+            alloc->frame = frame;
+            PixelsInfo info;
+            {
+                info.width = (int32_t)mpp_frame_get_hor_stride(frame);
+                info.height = (int32_t)mpp_frame_get_ver_stride(frame);
+                info.bitdepth = 8;
+                info.format = MppFrameFormatToPixformat(mpp_frame_get_fmt(frame));
+            }
+#if 0 /* ENABLE_RK_DECODE_DUMP */
+            {
+                static uint64_t curDumpTime = 0;
+#if RK_DECODE_DUMP_SIGNGLE_FILE
+                std::string dumpPath = (std::stringstream() << "./" << info.width << "_" << info.height << ".dmp").str();
+#else
+                std::string dumpPath = (std::stringstream() << "./" << curDumpTime++ << "_" << info.width << "_" << info.height << ".dmp").str();                
+#endif /* RK_DECODE_DUMP_SIGNGLE_FILE */
+                std::ofstream ofs(dumpPath, std::ios::app);
+                ofs.write((char*)mpp_buffer_get_ptr(mpp_frame_get_buffer(frame)), info.width * info.height * 1.5);
+                ofs.flush();
+                ofs.close();
+            }
+#endif /* ENABLE_RK_DECODE_DUMP */
+            StreamFrame::ptr streamFrame = std::make_shared<StreamFrame>(info, alloc);
+            _buffers.push_back(streamFrame);
+        }
+    } while (1);
     return true;
 END:
     return false;

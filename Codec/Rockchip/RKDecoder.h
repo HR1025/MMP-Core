@@ -54,6 +54,9 @@ private:
     std::mutex      _mtx;
     MppApi*         _mpi;
     MppCtx          _ctx;
+    bool            _sync;
+    uint64_t        _bufSize;
+    bool            _fastOutput;
     uint64_t        _timeout;
     uint32_t        _maxFrame;
     MppPacket       _rkPacket;
