@@ -39,6 +39,8 @@ public:
     void Sync() override;
     void Map() override;
     void UnMap() override;
+public:
+    virtual int GetFd();
 private:
     std::mutex _mtx;
     int _fd;

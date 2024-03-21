@@ -168,6 +168,10 @@ if (USE_ROCKCHIP)
         ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKDecoder.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKH264Decoder.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKH264Decoder.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RkBufferContext.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RkBufferContext.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RkBufferPoolContext.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RkBufferPoolContext.cpp
     )
 endif()
 

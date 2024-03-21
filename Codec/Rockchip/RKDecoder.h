@@ -16,6 +16,7 @@
 #include <mutex>
 
 #include "RKCommon.h"
+#include "RkBufferPoolContext.h"
 #include "Common/TaskQueue.h"
 
 namespace Mmp
@@ -55,7 +56,7 @@ private:
     MppApi*         _mpi;
     MppCtx          _ctx;
     bool            _sync;
-    uint64_t        _bufSize;
+    uint64_t        _poolSize;
     bool            _fastOutput;
     uint64_t        _timeout;
     uint32_t        _maxFrame;
@@ -64,10 +65,10 @@ private:
     std::atomic<bool>  _runing;
     std::mutex         _thMtx;
     TaskQueue::ptr     _thread;
-    MppBufferGroup     _frmGrp;
 private:
     std::mutex                    _bufMtx;
     std::deque<StreamFrame::ptr>  _buffers;
+    RkBufferPoolContext::ptr      _poolContext;
 };
 
 } // namespace Codec

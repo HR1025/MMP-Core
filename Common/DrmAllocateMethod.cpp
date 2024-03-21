@@ -266,4 +266,10 @@ void DrmAllocateMethod::UnMap()
     }
 }
 
+int DrmAllocateMethod::GetFd()
+{
+    std::lock_guard<std::mutex> lock(_mtx);
+    return _fd;
+}
+
 } // namespace Mmp
