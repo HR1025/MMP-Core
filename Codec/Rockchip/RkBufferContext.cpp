@@ -232,7 +232,7 @@ void* RkBufferContext::Malloc(size_t size)
     }
     _len = size;
     return _data;
-END1:
+/* END1: */
     RkDmaHeapDevice::RkDmaHeapDeviceSingleton()->DeAllocate(_fd);
 END:
     _fd = -1;
@@ -255,7 +255,6 @@ void* RkBufferContext::GetAddress(uint64_t offset)
     {
         _data = RkDmaHeapDevice::RkDmaHeapDeviceSingleton()->Map(_fd, _len);
     }
-    uint8_t* data = (uint8_t*) _data;
     return _data ? (uint8_t*)_data + offset : nullptr;
 }
 
