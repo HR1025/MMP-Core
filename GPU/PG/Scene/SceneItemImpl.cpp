@@ -8,6 +8,7 @@
 
 #include "Common/ImmutableVectorAllocateMethod.h"
 
+#include "GPU/GL/GLCommon.h"
 #include "GPU/GL/GLContex.h"
 #include "GPU/GL/GLDrawContex.h"
 
@@ -17,6 +18,11 @@ namespace Mmp
 {
 namespace Gpu 
 {
+
+#define MPP_SCENE_ITEM_RGB_INTERNAL_PROGRAM 0
+#define MPP_SCENE_ITEM_RGB_IMPORT_PROGRAM   1
+#define MPP_SCENE_ITEM_YUV_IMPORT_PROGRAM   2
+#define MPP_SCENE_ITEM_PROGRAM_NUM          3
 
 class SceneItemVertex
 {
@@ -92,16 +98,16 @@ public:
     void UpdateContext(const SceneItemProgramParams& param);
 private:
     static const std::string GetVertexShader();
-    static const std::string GetFragmentShader();
+    static const std::string GetFragmentShader(uint8_t slot);
     static std::vector<AttributeDesc> GetAttributeDescs();
-    Pipeline::ptr CreatePipeline();
+    Pipeline::ptr CreatePipeline(uint8_t slot);
     void InitUniforms();
     void InitVertexData();
 private:
     std::mutex                      _mtx;
     GLDrawContex::ptr               _draw;
     GLBuffer::ptr                   _vbo;
-    Pipeline::ptr                   _pipeLine;
+    Pipeline::ptr                   _pipeLines[MPP_SCENE_ITEM_PROGRAM_NUM];
     std::vector<SamplerState::ptr>  _samples;
     RawData::ptr                    _uniformsRawData;
     SceneItemUniforms*              _uniforms;
@@ -134,7 +140,18 @@ SceneItemProgram::SceneItemProgram()
     InitUniforms();
     InitVertexData();
     _vbo = _draw->CreateBuffer(sizeof(SceneItemVertex)*6, BufferUsageFlag::DYNAMIC | BufferUsageFlag::VERTEXDATA);
-    _pipeLine = CreatePipeline();
+
+    for (uint8_t i=0; i<MPP_SCENE_ITEM_PROGRAM_NUM; i++)
+    {
+        _pipeLines[i] = CreatePipeline(i);
+        if (!_pipeLines[i])
+        {
+            if (i != 0)
+            {
+                _pipeLines[i] = _pipeLines[i-1];
+            }
+        }
+    }
     // TODO : 是否需要暴露采样模式, 临近采样 or 双线性采样
     {
         SamplerStateDesc desc;
@@ -222,7 +239,7 @@ VS_OUTPUT main(VS_INPUT input)
     return source;
 }
 
-const std::string SceneItemProgram::GetFragmentShader()
+const std::string SceneItemProgram::GetFragmentShader(uint8_t slot)
 {
     std::string source;
     switch (GLDrawContex::Instance()->GetShaderLanguage())
@@ -230,11 +247,33 @@ const std::string SceneItemProgram::GetFragmentShader()
         case SL::ShaderLanguage::ELSL_3xx:
         case SL::ShaderLanguage::GLSL_4xx:
         {
-            source = 
+            switch (slot) 
+            {
+                case MPP_SCENE_ITEM_RGB_INTERNAL_PROGRAM:
+                {
+                    source += "#define samplerItem sampler2D\n";
+                    break;
+                }
+                case MPP_SCENE_ITEM_RGB_IMPORT_PROGRAM:
+                {
+                    source += "#define samplerItem samplerExternalOES\n";
+                }
+                case MPP_SCENE_ITEM_YUV_IMPORT_PROGRAM:
+                {
+                    source += "#define samplerItem __samplerExternal2DY2YEXT\n";
+                }
+                default:
+                {
+                    assert(false);
+                    source += "#define samplerItem sampler2D\n";
+                    break;
+                }
+            }
+            source += 
 R"(
 varying vec2 oUV;
 
-uniform sampler2D SceneItem;
+uniform samplerItem SceneItem;
 
 uniform float Transparency;
 
@@ -340,10 +379,10 @@ void SceneItemProgram::InitVertexData()
     _vertexsRawData = std::make_shared<RawData>(allocate->container.size() * sizeof(SceneItemVertex), allocate);
 }
 
-Pipeline::ptr SceneItemProgram::CreatePipeline()
+Pipeline::ptr SceneItemProgram::CreatePipeline(uint8_t slot)
 {
     ShaderModule::ptr vertexShader   = _draw->CreateShaderModule(SL::ShaderStage::VERTEX, _draw->GetShaderLanguage(), GetVertexShader());
-    ShaderModule::ptr fragmentShader = _draw->CreateShaderModule(SL::ShaderStage::FRAGMENT, _draw->GetShaderLanguage(), GetFragmentShader());
+    ShaderModule::ptr fragmentShader = _draw->CreateShaderModule(SL::ShaderStage::FRAGMENT, _draw->GetShaderLanguage(), GetFragmentShader(slot));
     InputLayout::ptr  inputLayout;
     BlendState::ptr   blendState;
     DepthStencilState::ptr depthStencilState;
@@ -533,7 +572,20 @@ void SceneItemProgram::Draw(Texture::ptr image, Texture::ptr canvas)
         _draw->BindTextures(0, textures);
     }
     {
-        _draw->BindPipeline(_pipeLine);
+        Pipeline::ptr pipeLine;
+        if (image->Flags() & (GlTextureFlags::TEXTURE_EXTERNAL | GlTextureFlags::TEXTURE_YUV))
+        {
+            pipeLine = _pipeLines[MPP_SCENE_ITEM_YUV_IMPORT_PROGRAM];
+        }
+        else if (image->Flags() & GlTextureFlags::TEXTURE_EXTERNAL)
+        {
+            pipeLine = _pipeLines[MPP_SCENE_ITEM_RGB_IMPORT_PROGRAM];
+        }
+        else
+        {
+            pipeLine = _pipeLines[MPP_SCENE_ITEM_RGB_INTERNAL_PROGRAM];
+        }
+        _draw->BindPipeline(pipeLine);
         _draw->UpdataUniformBuffer(_uniformsRawData, 2);
         // Update Vertex Buffer Object
         {

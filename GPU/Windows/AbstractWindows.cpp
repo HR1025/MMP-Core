@@ -4,6 +4,11 @@
 namespace Mmp
 {
 
+void* AbstractWindows::GetProcAddress(const std::string& funcName)
+{
+    return nullptr;
+}
+
 void AbstractWindows::Set(const std::string& /* key */, Any /* value */)
 {
 

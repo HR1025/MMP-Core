@@ -120,7 +120,7 @@ public:
 	uint32_t         depth;
 	int              mipLevels;
 	bool             generateMips;
-	TextureMiscFlag  miscFlag;
+	GlTextureFlags   miscFlag;
 
 	std::string tag;
 	std::vector<GLPixelData::ptr> initData; // Hint : order by level

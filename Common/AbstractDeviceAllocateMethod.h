@@ -41,6 +41,12 @@ public:
      * @brief 取消内存映射
      */
     virtual void UnMap() = 0;
+    /**
+     * @brief 获取 fd
+     * @note  目前仅在 linux 上使用, 实际获取 dma buf fd
+     * @todo  更好的平台一致性 ?
+     */
+    virtual int GetFd();
 public:
     /**
      * @param[in] key :

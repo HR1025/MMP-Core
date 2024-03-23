@@ -12,6 +12,7 @@
 #include <memory>
 #include <iostream>
 
+#include "Common/Common.h"
 #include "Common/LogMessage.h"
 #include "Common/NormalSharedData.h"
 #include "GPU/SL/SLCommon.h"
@@ -62,6 +63,7 @@ enum class DataFormat
 	B8G8R8A8_UNORM,  // D3D style
 	B8G8R8A8_UNORM_SRGB,  // D3D style
 
+	NV12_UINT,
 	R8G8B8A8_SNORM,
 	R8G8B8A8_UINT,
 	R8G8B8A8_SINT,
@@ -129,10 +131,12 @@ enum SupportFormat
 	SF_STORAGE_IMAGE  = 1 << 7u
 };
 
-enum TextureMiscFlag
+enum GlTextureFlags : uint64_t
 {
 	NONE = 0u,
-	TEXTURE_USE_FOR_RENDER = 1 << 1u
+	TEXTURE_USE_FOR_RENDER = 1 << 1u,        // 是否用于渲染   (D3D)
+	TEXTURE_EXTERNAL       = 1 << 2u,        // 是否为外部导入 (OpenGL、OpenGLES)
+	TEXTURE_YUV            = 1 << 3u,        // 是否为YUV纹理  (OpenGLES)
 };
 
 enum class TextureFilter

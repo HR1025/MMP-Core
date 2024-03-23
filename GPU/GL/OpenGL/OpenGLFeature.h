@@ -56,6 +56,7 @@ public:
 	bool OES_copy_image;
 	bool OES_texture_float;
 	bool OES_texture_3D;
+	bool OES_EGL_image_external;
 
 	// ARB
 	bool ARB_framebuffer_object;
@@ -92,6 +93,7 @@ public:
 	bool EXT_buffer_storage;
 	bool EXT_clip_cull_distance;
 	bool EXT_depth_clamp;
+	bool EXT_YUV_target;
 
 	// NV
 	bool NV_copy_image;
@@ -105,8 +107,8 @@ public:
 	bool APPLE_clip_distance;
 
 	// EGL
-	bool EGL_NV_system_time;
-	bool EGL_NV_coverage_sample;
+	bool _EGL_NV_system_time;
+	bool _EGL_NV_coverage_sample;
 
 	int maxVertexTextureUnits;
 };

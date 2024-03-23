@@ -17,6 +17,8 @@
 #include "GLContexDesc.h"
 #include "GLContex.h"
 
+#include "GPU/Windows/AbstractWindows.h"
+
 namespace Mmp
 {
 
@@ -31,7 +33,7 @@ public:
     static GPUBackend GetGpuBackendType();
     static GLDrawContex::ptr Instance();
 public:
-    GLDrawContex() = default;
+    GLDrawContex();
     virtual ~GLDrawContex() = default;
 public: /* raw property */
     virtual Any Get(const std::string& key);
@@ -91,6 +93,11 @@ public: /* query */
 public:
     virtual void Draw(int vertexCount, int offset) = 0;
     virtual void DrawIndexed(int vertexCount, int offset) = 0;
+public:
+    AbstractWindows::ptr GetWindows();
+    void SetWindows(AbstractWindows::ptr windows);
+private:
+    AbstractWindows::ptr _windows;
 };
 
 } // namespace Mmp

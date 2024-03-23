@@ -174,7 +174,7 @@ bool D3D11Texture::Create(ID3D11DeviceContext* context, ID3D11Device* device, co
     UINT MiscFlags = 0;
     HRESULT hr = S_OK;
     
-    if (generateMips || desc.miscFlag && TextureMiscFlag::TEXTURE_USE_FOR_RENDER)
+    if (generateMips || desc.miscFlag & GlTextureFlags::TEXTURE_USE_FOR_RENDER)
     {
         BindFlags |= D3D11_BIND_RENDER_TARGET;
     }
@@ -241,7 +241,7 @@ bool D3D11Texture::Create(ID3D11DeviceContext* context, ID3D11Device* device, co
         // TO CHECK
     }
 
-    if (desc.miscFlag && TextureMiscFlag::TEXTURE_USE_FOR_RENDER)
+    if (desc.miscFlag & GlTextureFlags::TEXTURE_USE_FOR_RENDER)
     {
         hr = device->CreateRenderTargetView(tex, nullptr, &colorRTView);
         if (FAILED(hr))
@@ -494,7 +494,7 @@ bool D3D11FrameBuffer::CreateDefaultColorTex(ID3D11DeviceContext* context, ID3D1
     desc.format = DataFormat::R8G8B8A8_UNORM;
     desc.type = TextureType::LINEAR2D;
     desc.mipLevels = 1;
-    desc.miscFlag = TextureMiscFlag::TEXTURE_USE_FOR_RENDER;
+    desc.miscFlag = GlTextureFlags::TEXTURE_USE_FOR_RENDER;
     desc.generateMips = false;
     colorTexs[0] = std::make_shared<D3D11Texture>(desc);
     return colorTexs[0]->Create(context, device, desc, desc.generateMips);

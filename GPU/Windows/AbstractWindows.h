@@ -9,6 +9,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include "Common/Any.h"
 #include "WindowsCommon.h"
@@ -67,6 +68,13 @@ public:
      * @note  只有在 onScreen render 才需要进行, offScreen render 调用时无效
      */
     virtual void  Swap() = 0;
+    /**
+     * @brief  获取接口
+     * @param  funcName : 函数名称
+     * @return function addresss (if available)
+     * @note   不同的 windows 可能具有不同的 extensions, 可以使用 GetProcAddress 获取特定接口
+     */
+    virtual void* GetProcAddress(const std::string& funcName);
     /**
      * @brief    设置原生属性
      */

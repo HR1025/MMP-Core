@@ -36,7 +36,7 @@ public:
     void Map() override;
     void UnMap() override;
 public:
-    int GetFd();
+    int GetFd() override;
 private:
     std::mutex _mtx;
     int _fd;

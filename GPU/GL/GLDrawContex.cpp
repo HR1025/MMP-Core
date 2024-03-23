@@ -16,6 +16,11 @@ namespace Mmp
 
 static GPUBackend gBackend = GPUBackend::OPENGL;
 
+GLDrawContex::GLDrawContex()
+{
+    _windows = nullptr;
+}
+
 Any GLDrawContex::Get(const std::string& /* key */)
 {
     return Any();
@@ -72,6 +77,16 @@ GLDrawContex::ptr GLDrawContex::Instance()
         }
     }
     return sh;
+}
+
+AbstractWindows::ptr GLDrawContex::GetWindows()
+{
+    return _windows;
+}
+
+void GLDrawContex::SetWindows(AbstractWindows::ptr windows)
+{
+    _windows = windows;
 }
 
 } // namespace Mmp

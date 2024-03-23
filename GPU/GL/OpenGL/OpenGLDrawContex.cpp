@@ -206,6 +206,15 @@ ShaderModule::ptr OpenGLDrawContex::CreateShaderModule(SL::ShaderStage stage, SL
         _code += "#version 300 es\n";
     }
 
+    if (openGLFeature.OES_EGL_image_external)
+    {
+        _code += "#extension GL_OES_EGL_image_external : require\n";
+    }
+    if (openGLFeature.EXT_YUV_target)
+    {
+        _code += "#extension GL_EXT_YUV_target : require\n";
+    }
+
     // easy version compatibility
     if (stage == SL::ShaderStage::VERTEX)
     {

@@ -59,6 +59,7 @@ const std::string DataFormatToStr(DataFormat format)
         case DataFormat::B8G8R8A8_UNORM: return "B8G8R8A8_UNORM";
         case DataFormat::B8G8R8A8_UNORM_SRGB: return "B8G8R8A8_UNORM_SRGB";
 
+        case DataFormat::NV12_UINT: return "NV12_UINT";
         case DataFormat::R8G8B8A8_SNORM: return "R8G8B8A8_SNORM";
         case DataFormat::R8G8B8A8_UINT: return "R8G8B8A8_UINT";
         case DataFormat::R8G8B8A8_SINT: return "R8G8B8A8_SINT";        
@@ -466,6 +467,7 @@ size_t DataFormatSizeInBytes(DataFormat dataFormat)
         case DataFormat::B8G8R8A8_UNORM:
         case DataFormat::B8G8R8A8_UNORM_SRGB: return 4;
 
+        case DataFormat::NV12_UINT: return 2;
         case DataFormat::R8G8B8A8_SNORM: return 4;
         case DataFormat::R8G8B8A8_UINT: return 4;
         case DataFormat::R8G8B8A8_SINT: return 4;

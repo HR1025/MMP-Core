@@ -71,7 +71,7 @@ struct OpenGLTextureImageInitData
     uint16_t                   height;
     uint16_t                   depth; // 1 mean 2D, otherwise 3D
     bool                       linearFilter;
-    GLPixelData::ptr             data;
+    GLPixelData::ptr           data;
 };
 
 struct OpenGLTextureFinalizeInitData

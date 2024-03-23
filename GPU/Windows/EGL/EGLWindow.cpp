@@ -1,5 +1,6 @@
 #include "EGLWindow.h"
 
+#include <vector>
 #include <cassert>
 #include <sstream>
 
@@ -101,6 +102,9 @@ bool EGLWindow::Open()
             _extensions.insert(eglEtension[i]);
         }
     }
+
+    _EGL_EXT_image_dma_buf_import = _extensions.count("EGL_EXT_image_dma_buf_import");
+    _EGL_EXT_yuv_surface = _extensions.count("EGL_EXT_yuv_surface");
 
     _eglConfig = OnChooseEGLConfig();
     if (_eglConfig)
@@ -225,6 +229,27 @@ void EGLWindow::Swap()
     {
         eglSwapBuffers(_eglDisplay, _eglSurface);
     }
+}
+
+Any EGLWindow::Get(const std::string& key)
+{
+    if (key == "EGLContext")
+    {
+        return _eglContext;
+    }
+    else if (key == "EGLDisplay")
+    {
+        return _eglDisplay;
+    }
+    else
+    {
+        return AbstractEGLWindow::Get(key);
+    }
+}
+
+void* EGLWindow::GetProcAddress(const std::string& funcName)
+{
+    return (void*)eglGetProcAddress(funcName.c_str());
 }
 
 void EGLWindow::SetSurfaceType(GLSurfaceType surfaceType)
