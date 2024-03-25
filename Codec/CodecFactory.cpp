@@ -13,6 +13,10 @@
     #include "openh264/OpenH264Decoder.h"
 #endif /* USE_OPENH264 */
 
+#if defined(USE_ROCKCHIP)
+    #include "Rockchip/RKH264Decoder.h"
+#endif /* USE_ROCKCHIP */
+
 namespace Mmp
 {
 namespace Codec
@@ -101,6 +105,9 @@ void DecoderFactory::RegisterBuiltins()
 #if defined(USE_OPENH264)
     _decoderFactory.registerClass("OpenH264Decoder", new Instantiator<OpenH264Decoder, AbstractDecoder>);
 #endif /* USE_OPENH264 */
+#if defined(USE_ROCKCHIP)
+    _decoderFactory.registerClass("RKH264Decoder", new Instantiator<RKH264Decoder, AbstractDecoder>);
+#endif /* USE_ROCKCHIP */
 }
 
 DecoderFactory& DecoderFactory::DefaultFactory()

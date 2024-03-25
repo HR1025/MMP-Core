@@ -30,4 +30,9 @@ bool AbstractDeviceAllocateMethod::Set(const std::string& key, const Any& /* val
     }
 }
 
+int AbstractDeviceAllocateMethod::GetFd()
+{
+    return -1;
+}
+
 } // namespace Mmp

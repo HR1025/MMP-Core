@@ -1,11 +1,124 @@
+#include "Any.h"
+#include "GLCommon.h"
 #include "OpenGL.h"
 
+#include <cassert>
 #include <iomanip>
+#include <memory>
 
+#if MMP_PLATFORM(LINUX)
+#include "GL/glew.h"
+#include "GL/eglew.h"
+#endif /* MMP_PLATFORM(LINUX) */
+
+#include "GLDrawContex.h"
 #include "OpenGLUtil.h"
 #include "OpenGLContex.h"
 #include "OpenGLInitStepData.h"
 
+#include "GPU/Windows/AbstractWindows.h"
+#include "Common/PixelsInfo.h"
+#include "Common/PixelFormat.h"
+#include "Common/AbstractDeviceAllocateMethod.h"
+
+#if MMP_PLATFORM(LINUX)
+namespace Mmp
+{
+//
+// Hint : this section is copyed from `drm/drm_fourcc.h`
+//
+// Todo     : ARM 平台下某些 Soc 具有特殊 AFBC (Arm Frame buffer compression) 功能, 是否需要支持其导入 (不过相关资料很少,适配难度挺大)
+// Brief    : AFBC 是总线带宽压缩技术,数据从 Process Uint 出去时压缩,进入 Process Uint 时解压, 从而在总线传输时数据的带宽下降
+// See aslo : https://lkml.org/lkml/2018/7/10/360
+//
+
+#define mmp_fourcc_code(a, b, c, d) ((uint32_t)(a) | ((uint32_t)(b) << 8) | \
+				                    ((uint32_t)(c) << 16) | ((uint32_t)(d) << 24))
+
+
+#define MMP_DRM_FORMAT_ABGR8888	mmp_fourcc_code('A', 'B', '2', '4') /* [31:0] A:B:G:R 8:8:8:8 little endian */
+
+/* 24 bpp RGB */
+#define MMP_DRM_FORMAT_RGB888	mmp_fourcc_code('R', 'G', '2', '4') /* [23:0] R:G:B little endian */
+#define MMP_DRM_FORMAT_BGR888	mmp_fourcc_code('B', 'G', '2', '4') /* [23:0] B:G:R little endian */
+
+/* packed YCbCr */
+#define MMP_DRM_FORMAT_YUYV		mmp_fourcc_code('Y', 'U', 'Y', 'V') /* [31:0] Cr0:Y1:Cb0:Y0 8:8:8:8 little endian */
+
+/*
+ * 1-plane YUV 4:2:0
+ * In these formats, the component ordering is specified (Y, followed by U
+ * then V), but the exact Linear layout is undefined.
+ * These formats can only be used with a non-Linear modifier.
+ */
+#define MMP_DRM_FORMAT_YUV420_8BIT	mmp_fourcc_code('Y', 'U', '0', '8')
+
+/*
+ * 2 plane YCbCr
+ * index 0 = Y plane, [7:0] Y
+ * index 1 = Cr:Cb plane, [15:0] Cr:Cb little endian
+ * or
+ * index 1 = Cb:Cr plane, [15:0] Cb:Cr little endian
+ */
+#define MMP_DRM_FORMAT_NV12		mmp_fourcc_code('N', 'V', '1', '2') /* 2x2 subsampled Cr:Cb plane */
+
+void* CreateEGLImage(OpenGLRenderTexture::ptr tex, AbstractDeviceAllocateMethod::ptr allocate)
+{
+    EGLImageKHR image = nullptr;
+    static PFNEGLCREATEIMAGEKHRPROC _eglCreateImageKHR = nullptr;
+    AbstractWindows::ptr windows = GLDrawContex::Instance()->GetWindows();
+    if (windows && !_eglCreateImageKHR)
+    {
+        _eglCreateImageKHR = (PFNEGLCREATEIMAGEKHRPROC)windows->GetProcAddress("eglCreateImageKHR");
+    }
+    if (_eglCreateImageKHR)
+    {
+        EGLDisplay display = AnyCast<EGLDisplay>(windows->Get("EGLDisplay"));
+        EGLContext context = AnyCast<EGLContext>(windows->Get("EGLContext"));
+        switch (tex->format)
+        {
+            case DataFormat::R8G8B8A8_UINT:
+            {
+                EGLint attr[] = 
+                {
+                    EGL_WIDTH, tex->w,
+                    EGL_HEIGHT, tex->h,
+                    EGL_LINUX_DRM_FOURCC_EXT, MMP_DRM_FORMAT_ABGR8888,
+                    EGL_DMA_BUF_PLANE0_FD_EXT, allocate->GetFd(),
+                    EGL_DMA_BUF_PLANE0_OFFSET_EXT, 0,
+                    EGL_DMA_BUF_PLANE0_PITCH_EXT, tex->w,
+                    EGL_NONE
+                };
+                image = _eglCreateImageKHR(display, context, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer)nullptr, attr);
+                break;
+            }
+            case DataFormat::NV12_UINT:
+            {
+                EGLint attr[] = 
+                {
+                    EGL_WIDTH, tex->w,
+                    EGL_HEIGHT, tex->h,
+                    EGL_LINUX_DRM_FOURCC_EXT,  MMP_DRM_FORMAT_NV12,
+                    EGL_DMA_BUF_PLANE0_FD_EXT, allocate->GetFd(),
+                    EGL_DMA_BUF_PLANE0_OFFSET_EXT, 0,
+                    EGL_DMA_BUF_PLANE0_PITCH_EXT, tex->w,
+                    EGL_DMA_BUF_PLANE1_FD_EXT, allocate->GetFd(),
+                    EGL_DMA_BUF_PLANE1_OFFSET_EXT, tex->w * tex->h,
+                    EGL_DMA_BUF_PLANE1_PITCH_EXT, tex->w,
+                    EGL_NONE
+                };
+                image = _eglCreateImageKHR(display, context, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer)nullptr, attr);
+                break;
+            }
+            default:
+                break;
+        } 
+    }
+    return image;
+}
+
+} // namespace Mmp
+#endif /* MMP_PLATFORM(LINUX) */
 
 namespace Mmp
 {
@@ -503,38 +616,64 @@ void OpenGL::InitStepTextureImage(Any data, GLuint& boundTexture)
     GLenum internalFormat, format, type;
     int alignment;
     DataFormatToGLFormatAndType(textureImageData.format, _openGLFeature, internalFormat, format, type, alignment);
-    if (textureImageData.depth == 1) // 2D
+    if (!(tex->flags & GlTextureFlags::TEXTURE_EXTERNAL))
     {
-        if (!tex->isMemoryAllocated)
+        if (textureImageData.depth == 1) // 2D
         {
-            glTexImage2D(tex->target, textureImageData.level, internalFormat, textureImageData.width, textureImageData.height,
-                0, format, type, textureImageData.data->GetData()
-            );
-            tex->isMemoryAllocated = true;
+            if (!tex->isMemoryAllocated)
+            {
+                glTexImage2D(tex->target, textureImageData.level, internalFormat, textureImageData.width, textureImageData.height,
+                    0, format, type, textureImageData.data->GetData()
+                );
+                tex->isMemoryAllocated = true;
+            }
+            else
+            {
+                glTexSubImage2D(tex->target, textureImageData.level, 0, 0, textureImageData.width, textureImageData.height, 
+                    format, type, textureImageData.data->GetData()
+                );
+            }
+        }
+        else // 3D
+        {
+            if (!tex->isMemoryAllocated)
+            {
+                glTexImage3D(tex->target, textureImageData.level, internalFormat, textureImageData.width, textureImageData.height,
+                    textureImageData.depth, 0, format, type, textureImageData.data->GetData()
+                );
+                tex->isMemoryAllocated = true;
+            }
+            else
+            {
+                glTexSubImage3D(tex->target, textureImageData.level, 0, 0, 0, textureImageData.width, textureImageData.height, textureImageData.depth,
+                    format, type, textureImageData.data->GetData()
+                );
+            }
+        }
+    }
+#if MMP_PLATFORM(LINUX)
+    else 
+    {
+        static PFNGLEGLIMAGETARGETTEXTURE2DOESPROC _glEGLImageTargetTexture2DOES = nullptr;
+        AbstractDeviceAllocateMethod::ptr alloc = std::dynamic_pointer_cast<AbstractDeviceAllocateMethod>(textureImageData.data->GetAllocateMethod());
+        AbstractWindows::ptr windows = GLDrawContex::Instance()->GetWindows();
+        if (windows && !_glEGLImageTargetTexture2DOES)
+        {
+            _glEGLImageTargetTexture2DOES = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)windows->GetProcAddress("glEGLImageTargetTexture2DOES");
+        }
+        if (alloc && _glEGLImageTargetTexture2DOES)
+        {
+            EGLImageKHR image = CreateEGLImage(tex, alloc);
+            glBindTexture(tex->target, tex->texture);
+            _glEGLImageTargetTexture2DOES(tex->target, image);
         }
         else
         {
-            glTexSubImage2D(tex->target, textureImageData.level, 0, 0, textureImageData.width, textureImageData.height, 
-                format, type, textureImageData.data->GetData()
-            );
+            assert(false);
         }
     }
-    else // 3D
-    {
-        if (!tex->isMemoryAllocated)
-        {
-            glTexImage3D(tex->target, textureImageData.level, internalFormat, textureImageData.width, textureImageData.height,
-                textureImageData.depth, 0, format, type, textureImageData.data->GetData()
-            );
-            tex->isMemoryAllocated = true;
-        }
-        else
-        {
-            glTexSubImage3D(tex->target, textureImageData.level, 0, 0, 0, textureImageData.width, textureImageData.height, textureImageData.depth,
-                format, type, textureImageData.data->GetData()
-            );
-        }
-    }
+#endif
+
     tex->wrapS      = GL_CLAMP_TO_EDGE;
     tex->wrapT      = GL_CLAMP_TO_EDGE;
     tex->magFilter  = textureImageData.linearFilter ? GL_LINEAR : GL_NEAREST;

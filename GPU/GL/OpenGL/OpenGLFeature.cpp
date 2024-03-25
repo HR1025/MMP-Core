@@ -46,6 +46,7 @@ OpenGLFeature::OpenGLFeature()
 	OES_copy_image = false;
 	OES_texture_float = false;
 	OES_texture_3D = false;
+	OES_EGL_image_external = false;
 
 	// ARB
 	ARB_framebuffer_object = false;
@@ -82,6 +83,7 @@ OpenGLFeature::OpenGLFeature()
 	EXT_buffer_storage = false;
 	EXT_clip_cull_distance = false;
 	EXT_depth_clamp = false;
+	EXT_YUV_target = false;
 
 	// NV
 	NV_copy_image = false;
@@ -95,8 +97,8 @@ OpenGLFeature::OpenGLFeature()
 	APPLE_clip_distance = false;
 
 	// EGL
-	EGL_NV_system_time = false;
-	EGL_NV_coverage_sample = false;
+	_EGL_NV_system_time = false;
+	_EGL_NV_coverage_sample = false;
 
 	maxVertexTextureUnits = -1;
 }

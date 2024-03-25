@@ -58,6 +58,32 @@ if (USE_VAAPI)
     list(APPEND Codec_PUB_LIBS ${DRM_LIBRARIES})
 endif()
 
+# Rockchip
+if (USE_ROCKCHIP)
+    if (NOT RKMPP_FOUND)
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(RKMPP REQUIRED rockchip_mpp)
+    endif()
+    message("-- Found RKMPP")
+    message("  -- RKMPP INCS : ${RKMPP_INCLUDE_DIRS}")
+    message("  -- RKMPP LIB DIR : ${RKMPP_LIBRARY_DIRS}")
+    message("  -- RKMPP LIBS : ${RKMPP_LIBRARIES}")
+    list(APPEND Codec_INCS ${RKMPP_INCLUDE_DIRS})
+    list(APPEND Codec_LIB_DIR ${RKMPP_LIBRARY_DIRS})
+    list(APPEND Codec_PUB_LIBS ${RKMPP_LIBRARIES})
+    if (NOT RKVPU_FOUND)
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(RKVPU REQUIRED rockchip_vpu) 
+    endif()
+    message("-- Found RKVPU")
+    message("  -- RKVPU INCS : ${RKVPU_INCLUDE_DIRS}")
+    message("  -- RKVPU LIB DIR : ${RKVPU_LIBRARY_DIRS}")
+    message("  -- RKVPU LIBS : ${RKVPU_LIBRARIES}")
+    list(APPEND Codec_INCS ${RKVPU_INCLUDE_DIRS})
+    list(APPEND Codec_LIB_DIR ${RKVPU_LIBRARY_DIRS})
+    list(APPEND Codec_PUB_LIBS ${RKVPU_LIBRARIES})
+endif()
+
 if (USE_OPENH264)
     list(APPEND Codec_PUB_LIBS Mmp::OpenH264)
 endif()
@@ -126,6 +152,29 @@ if (USE_VAAPI)
     )
 endif()
 
+# Rockchip
+if (USE_ROCKCHIP)
+    list(APPEND Codec_INCS
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip
+    )
+    list(APPEND Codec_SRCS
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKCommon.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKCommon.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKUtil.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKUtil.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKTranslator.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKTranslator.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKDecoder.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKDecoder.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKH264Decoder.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RKH264Decoder.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RkBufferContext.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RkBufferContext.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RkBufferPoolContext.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Rockchip/RkBufferPoolContext.cpp
+    )
+endif()
+
 # PNG
 list(APPEND Codec_INCS
     ${CMAKE_CURRENT_SOURCE_DIR}/PNG
@@ -168,4 +217,7 @@ if (USE_X11)
 endif()
 if (USE_OPENH264)
     target_compile_definitions (MMP_Codec PRIVATE USE_OPENH264)
+endif()
+if (USE_ROCKCHIP)
+    target_compile_definitions(MMP_Codec PRIVATE USE_ROCKCHIP)
 endif()

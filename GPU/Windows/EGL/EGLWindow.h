@@ -31,12 +31,20 @@ public: /* override AbstractWindows function */
     bool Close() override;
     bool BindRenderThread(bool bind) override;
     void Swap() override;
+    /**
+     * @note
+     *       1 - EGLDisplay
+     *       2 - EGLContext
+     */
+    Any Get(const std::string& key) override;
+    void* GetProcAddress(const std::string& funcName) override;
 public: /* override AbstractEGLWindow function */
     void SetSurfaceType(GLSurfaceType surfaceType) override;
     GLSurfaceType GetSurfaceType() override;
     const std::string GetVendor() override; 
     GLMode GetGLMode() override;
     const Version GetVersion() override;
+public:
     bool CheckExtension(const std::string& extension);
 public:
     EGLWindow();
@@ -90,7 +98,9 @@ private:
     uint32_t      _versionMajor;
     uint32_t      _versionMinor;
 private:
-   std::set<std::string> _extensions; 
+    std::set<std::string> _extensions;
+    bool                  _EGL_EXT_yuv_surface;
+    bool                  _EGL_EXT_image_dma_buf_import;
 };
 
 } // namespace Mmp 

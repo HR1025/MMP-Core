@@ -98,7 +98,7 @@ TextureDesc::TextureDesc()
     depth        = 0;
     mipLevels    = -1;
     generateMips = false;
-    miscFlag     = TextureMiscFlag::NONE;
+    miscFlag     = GlTextureFlags::NONE;
 }
 
 FrameBufferDesc::FrameBufferDesc()

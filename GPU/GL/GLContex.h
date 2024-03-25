@@ -116,10 +116,12 @@ public:
 	int Width();
 	int Height();
 	int Depth();
+	GlTextureFlags Flags();
 protected:
 	int _width;
 	int _height;
 	int _depth;
+	GlTextureFlags _flags;
 };
 
 } // namespace Mmp

@@ -149,7 +149,7 @@ bool OpenH264Decoder::Push(AbstractPack::ptr pack)
 
 bool OpenH264Decoder::Pop(AbstractFrame::ptr& frame) 
 {
-    std::lock_guard<std::mutex> lock(_mtx);
+    std::lock_guard<std::mutex> lock(_bufMtx);
     if (_buffers.empty())
     {
         return false;
@@ -165,6 +165,7 @@ bool OpenH264Decoder::Pop(AbstractFrame::ptr& frame)
 bool OpenH264Decoder::CanPush() 
 {
     std::lock_guard<std::mutex> lock(_mtx);
+    std::lock_guard<std::mutex> bufLock(_bufMtx);
     return _buffers.size() < _bufSize;
 }
 

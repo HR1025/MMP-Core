@@ -29,6 +29,7 @@ public:
     uint16_t h;
     uint16_t d;
 
+    GlTextureFlags flags;
     DataFormat format;
     GLenum target;
     GLenum wrapS;

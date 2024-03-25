@@ -23,7 +23,7 @@ std::vector<Texture::ptr> Create2DTextures(GLDrawContex::ptr draw, const PixelsI
             desc.depth         = 1;
             desc.mipLevels     = 1;
             desc.generateMips  = false;
-            desc.miscFlag      = useForRender ? TextureMiscFlag::TEXTURE_USE_FOR_RENDER : TextureMiscFlag::NONE;
+            desc.miscFlag      = useForRender ? GlTextureFlags::TEXTURE_USE_FOR_RENDER : GlTextureFlags::NONE;
             desc.tag           = tag;
             texs.push_back(draw->CreateTexture(desc));
         }
@@ -36,7 +36,7 @@ std::vector<Texture::ptr> Create2DTextures(GLDrawContex::ptr draw, const PixelsI
             desc.depth         = 1;
             desc.mipLevels     = 1;
             desc.generateMips  = false;
-            desc.miscFlag      = useForRender ? TextureMiscFlag::TEXTURE_USE_FOR_RENDER : TextureMiscFlag::NONE;
+            desc.miscFlag      = useForRender ? GlTextureFlags::TEXTURE_USE_FOR_RENDER : GlTextureFlags::NONE;
             desc.tag           = tag;
             texs.push_back(draw->CreateTexture(desc));
         }
@@ -55,7 +55,7 @@ std::vector<Texture::ptr> Create2DTextures(GLDrawContex::ptr draw, const PixelsI
         desc.depth         = 1;
         desc.mipLevels     = 1;
         desc.generateMips  = false;
-        desc.miscFlag      = useForRender ? TextureMiscFlag::TEXTURE_USE_FOR_RENDER : TextureMiscFlag::NONE;
+        desc.miscFlag      = useForRender ? GlTextureFlags::TEXTURE_USE_FOR_RENDER : GlTextureFlags::NONE;
         desc.tag           = tag;
         texs.push_back(draw->CreateTexture(desc));
     }
@@ -71,7 +71,7 @@ std::vector<Texture::ptr> Create2DTextures(GLDrawContex::ptr draw, const PixelsI
         desc.depth         = 1;
         desc.mipLevels     = 1;
         desc.generateMips  = false;
-        desc.miscFlag      = useForRender ? TextureMiscFlag::TEXTURE_USE_FOR_RENDER : TextureMiscFlag::NONE;
+        desc.miscFlag      = useForRender ? GlTextureFlags::TEXTURE_USE_FOR_RENDER : GlTextureFlags::NONE;
         desc.tag           = tag;
         texs.push_back(draw->CreateTexture(desc)); 
     }
@@ -86,7 +86,7 @@ std::vector<Texture::ptr> Create2DTextures(GLDrawContex::ptr draw, const PixelsI
         desc.depth         = 1;
         desc.mipLevels     = 1;
         desc.generateMips  = false;
-        desc.miscFlag      = useForRender ? TextureMiscFlag::TEXTURE_USE_FOR_RENDER : TextureMiscFlag::NONE;
+        desc.miscFlag      = useForRender ? GlTextureFlags::TEXTURE_USE_FOR_RENDER : GlTextureFlags::NONE;
         desc.tag           = tag;
         texs.push_back(draw->CreateTexture(desc)); 
     }
@@ -101,7 +101,7 @@ std::vector<Texture::ptr> Create2DTextures(GLDrawContex::ptr draw, const PixelsI
         desc.depth         = 1;
         desc.mipLevels     = 1;
         desc.generateMips  = false;
-        desc.miscFlag      = useForRender ? TextureMiscFlag::TEXTURE_USE_FOR_RENDER : TextureMiscFlag::NONE;
+        desc.miscFlag      = useForRender ? GlTextureFlags::TEXTURE_USE_FOR_RENDER : GlTextureFlags::NONE;
         desc.tag           = tag;
         texs.push_back(draw->CreateTexture(desc)); 
     }
@@ -121,7 +121,7 @@ std::vector<Texture::ptr> Create2DTextures(GLDrawContex::ptr draw, const PixelsI
             desc.depth         = 1;
             desc.mipLevels     = 1;
             desc.generateMips  = false;
-            desc.miscFlag      = useForRender ? TextureMiscFlag::TEXTURE_USE_FOR_RENDER : TextureMiscFlag::NONE;
+            desc.miscFlag      = useForRender ? GlTextureFlags::TEXTURE_USE_FOR_RENDER : GlTextureFlags::NONE;
             desc.tag           = tag;
             texs.push_back(draw->CreateTexture(desc));
         }
@@ -134,7 +134,7 @@ std::vector<Texture::ptr> Create2DTextures(GLDrawContex::ptr draw, const PixelsI
             desc.depth         = 1;
             desc.mipLevels     = 1;
             desc.generateMips  = false;
-            desc.miscFlag      = useForRender ? TextureMiscFlag::TEXTURE_USE_FOR_RENDER : TextureMiscFlag::NONE;
+            desc.miscFlag      = useForRender ? GlTextureFlags::TEXTURE_USE_FOR_RENDER : GlTextureFlags::NONE;
             desc.tag           = tag;
             texs.push_back(draw->CreateTexture(desc));
         }
@@ -147,7 +147,7 @@ std::vector<Texture::ptr> Create2DTextures(GLDrawContex::ptr draw, const PixelsI
             desc.depth         = 1;
             desc.mipLevels     = 1;
             desc.generateMips  = false;
-            desc.miscFlag      = useForRender ? TextureMiscFlag::TEXTURE_USE_FOR_RENDER : TextureMiscFlag::NONE;
+            desc.miscFlag      = useForRender ? GlTextureFlags::TEXTURE_USE_FOR_RENDER : GlTextureFlags::NONE;
             desc.tag           = tag;
             texs.push_back(draw->CreateTexture(desc));
         }

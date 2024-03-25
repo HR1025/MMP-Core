@@ -46,6 +46,7 @@ OpenGLRenderTexture::OpenGLRenderTexture(int width, int height, int depth, int n
     d = depth;
     this->numMips = numMips;
 
+    flags = GlTextureFlags::NONE;
 	target = 0xFFFF;
 	wrapS = 0xFFFF;
 	wrapT = 0xFFFF;

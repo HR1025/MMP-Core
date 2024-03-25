@@ -189,7 +189,7 @@ bool CheckOpenGLExtensions()
 	openGLFeature.ARB_texture_non_power_of_two = glExtensions.count("GL_ARB_texture_non_power_of_two") != 0;
 	openGLFeature.ARB_shader_stencil_export = glExtensions.count("GL_ARB_shader_stencil_export") != 0;
     openGLFeature.ARB_viewport_array = glExtensions.count("GL_ARB_viewport_array") != 0;
-	if (openGLFeature.IsGLES) 
+    if (openGLFeature.IsGLES) 
     {
 		openGLFeature.EXT_blend_func_extended = glExtensions.count("GL_EXT_blend_func_extended") != 0;
 		openGLFeature.OES_texture_npot = glExtensions.count("GL_OES_texture_npot") != 0;
@@ -203,10 +203,12 @@ bool CheckOpenGLExtensions()
 		openGLFeature.ARM_shader_framebuffer_fetch = glExtensions.count("GL_ARM_shader_framebuffer_fetch") != 0;
 		openGLFeature.OES_texture_float = glExtensions.count("GL_OES_texture_float") != 0;
 		openGLFeature.OES_texture_3D = glExtensions.count("GL_OES_texture_3D") != 0;
+        openGLFeature.OES_EGL_image_external = glExtensions.count("GL_OES_EGL_image_external") != 0;
 		openGLFeature.EXT_buffer_storage = glExtensions.count("GL_EXT_buffer_storage") != 0;
 		openGLFeature.EXT_clip_cull_distance = glExtensions.count("GL_EXT_clip_cull_distance") != 0;
 		openGLFeature.EXT_depth_clamp = glExtensions.count("GL_EXT_depth_clamp") != 0;
 		openGLFeature.APPLE_clip_distance = glExtensions.count("GL_APPLE_clip_distance") != 0;
+        openGLFeature.EXT_YUV_target = glExtensions.count("GL_EXT_YUV_target") != 0;
 		openGLFeature.OES_vertex_array_object = false;
 		openGLFeature.EXT_discard_framebuffer = false;
 	} 
@@ -312,6 +314,7 @@ void InfoOpenGLFeature(const OpenGLFeature& openGLFeature)
     GL_LOG_INFO << "GL_OES_mapbuffer=" << lookup[openGLFeature.OES_mapbuffer];
     GL_LOG_INFO << "GL_OES_vertex_array_object=" << lookup[openGLFeature.OES_vertex_array_object];
     GL_LOG_INFO << "GL_OES_copy_image=" << lookup[openGLFeature.OES_copy_image];
+    GL_LOG_INFO << "GL_OES_EGL_image_external=" << lookup[openGLFeature.OES_EGL_image_external];
     GL_LOG_INFO << "GL_OES_texture_float=" << lookup[openGLFeature.OES_texture_float];
     GL_LOG_INFO << "GL_OES_texture_3D=" << lookup[openGLFeature.OES_texture_3D];
     GL_LOG_INFO << "[ARB]";
@@ -346,6 +349,7 @@ void InfoOpenGLFeature(const OpenGLFeature& openGLFeature)
     GL_LOG_INFO << "GL_EXT_buffer_storage=" << lookup[openGLFeature.EXT_buffer_storage];
     GL_LOG_INFO << "GL_EXT_clip_cull_distance=" << lookup[openGLFeature.EXT_clip_cull_distance];
     GL_LOG_INFO << "GL_EXT_depth_clamp=" << lookup[openGLFeature.EXT_depth_clamp];
+    GL_LOG_INFO << "GL_EXT_YUV_target=" << lookup[openGLFeature.EXT_YUV_target];
     GL_LOG_INFO << "[NV]";
     GL_LOG_INFO << "GL_NV_copy_image=" << lookup[openGLFeature.NV_copy_image];
     GL_LOG_INFO << "GL_NV_framebuffer_blit=" << lookup[openGLFeature.NV_framebuffer_blit];
@@ -355,8 +359,8 @@ void InfoOpenGLFeature(const OpenGLFeature& openGLFeature)
     GL_LOG_INFO << "[APPLE]";
     GL_LOG_INFO << "GL_APPLE_clip_distance=" << lookup[openGLFeature.APPLE_clip_distance];
     GL_LOG_INFO << "[EGL]";
-    GL_LOG_INFO << "EGL_NV_system_time=" << lookup[openGLFeature.EGL_NV_system_time];
-    GL_LOG_INFO << "EGL_NV_coverage_sample=" << lookup[openGLFeature.EGL_NV_coverage_sample];
+    GL_LOG_INFO << "EGL_NV_system_time=" << lookup[openGLFeature._EGL_NV_system_time];
+    GL_LOG_INFO << "EGL_NV_coverage_sample=" << lookup[openGLFeature._EGL_NV_coverage_sample];
     GL_LOG_INFO;
     GL_LOG_INFO << "maxVertexTextureUnits=" << openGLFeature.maxVertexTextureUnits;
     GL_LOG_INFO;

@@ -397,14 +397,17 @@ OpenGLTexture::OpenGLTexture(const OpenGL::ptr& openGL, const TextureDesc& desc)
     _width          = desc.width;
     _height         = desc.height;
     _depth          = desc.depth;
+    _flags          = desc.miscFlag;
     _format         = desc.format;
     _type           = desc.type;
     _mipLevels      = desc.mipLevels;
     
     {
         _tex = std::make_shared<OpenGLRenderTexture>(_width, _height, 1, _mipLevels);
-        _tex->format = desc.format; 
-        _tex->target = GLTextureTypeToOpenGLType(desc.type);
+        _tex->flags = desc.miscFlag;
+        _tex->format = desc.miscFlag & GlTextureFlags::TEXTURE_YUV ? DataFormat::NV12_UINT : desc.format;
+        _tex->target = desc.miscFlag & GlTextureFlags::TEXTURE_EXTERNAL ? GL_TEXTURE_EXTERNAL_OES : GLTextureTypeToOpenGLType(desc.type);
+        _tex->canWrap = desc.miscFlag & GlTextureFlags::TEXTURE_EXTERNAL ? false : _tex->canWrap;
         assert(_tex);
         OpenGLInitStep step;
         OpenGLCreateTextureInitData data;
@@ -524,6 +527,10 @@ void OpenGLTexture::SetImageData(int x, int y, int z, int width, int height, int
         _data.height       = height;
         _data.depth        = depth;
         _data.linearFilter = false;
+        if (_tex->flags & GlTextureFlags::TEXTURE_EXTERNAL)
+        {
+            _data.linearFilter = false;
+        }
         step.data = _data;
         _openGL->_initSteps.push_back(step);
     }

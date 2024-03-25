@@ -17,9 +17,20 @@ const std::string CodecTypeToStr(CodecType type)
 {
     switch (type)
     {
-        case CodecType::PNG: return "PNG";
+        case CodecType::PNG:    return "PNG";
+        case CodecType::H264:   return "H264";
+        case CodecType::H265:   return "H265";
+        case CodecType::VP8:    return "VP8";
+        case CodecType::VP9:    return "VP9";
+        case CodecType::AV1:    return "AV1";
         default: assert(false); return "UNKNOWN";
     }
+}
+
+std::ostream& operator<<(std::ostream& os, CodecType type)
+{
+    os << CodecTypeToStr(type);
+    return os;
 }
 
 } // namespace Codec

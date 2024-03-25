@@ -40,4 +40,9 @@ int Texture::Depth()
     return _depth;
 }
 
+GlTextureFlags Texture::Flags()
+{
+    return _flags;
+}
+
 } // namespace Mmp
